@@ -1,0 +1,96 @@
+<?php
+// Same pattern as Admin Reports: filter values come straight from $_GET,
+// not the resolved $range, so a validation failure never silently resets
+// what the cashier typed.
+$selectedPeriod = $_GET['period'] ?? 'daily';
+$selectedDate = $_GET['date'] ?? date('Y-m-d');
+$selectedStart = $_GET['start'] ?? date('Y-m-d');
+$selectedEnd = $_GET['end'] ?? date('Y-m-d');
+?>
+<div class="app-shell">
+    <header class="topbar">
+        <div class="topbar__brand"><?php echo APP_NAME; ?> · Cashier</div>
+        <div class="topbar__user">
+            <span><?php echo htmlspecialchars(Session::get('user_name')); ?></span>
+            <a class="link-muted" href="<?php echo APP_URL; ?>/index.php?route=logout">Log Out</a>
+        </div>
+    </header>
+
+    <?php require __DIR__ . '/../layouts/cashier-nav.php'; ?>
+
+    <main class="content">
+        <h1>Reports</h1>
+        <p class="field-hint">Showing <strong><?php echo htmlspecialchars($branch['name'] ?? ''); ?></strong> only — the branch you're working today.</p>
+
+        <?php if (!empty($error)): ?>
+            <div class="alert alert--error"><?php echo htmlspecialchars($error); ?></div>
+        <?php endif; ?>
+
+        <form method="GET" action="<?php echo APP_URL; ?>/index.php" class="panel-form" id="report-filter-form">
+            <input type="hidden" name="route" value="cashier/reports">
+            <div class="filter-row">
+                <div>
+                    <label for="period">Report Type</label>
+                    <select id="period" name="period">
+                        <option value="daily" <?php echo $selectedPeriod === 'daily' ? 'selected' : ''; ?>>Daily</option>
+                        <option value="weekly" <?php echo $selectedPeriod === 'weekly' ? 'selected' : ''; ?>>Weekly</option>
+                        <option value="monthly" <?php echo $selectedPeriod === 'monthly' ? 'selected' : ''; ?>>Monthly</option>
+                        <option value="custom" <?php echo $selectedPeriod === 'custom' ? 'selected' : ''; ?>>Custom Range</option>
+                    </select>
+                </div>
+
+                <div id="date-field" <?php echo $selectedPeriod === 'custom' ? 'hidden' : ''; ?>>
+                    <label for="date">Date</label>
+                    <input type="date" id="date" name="date" value="<?php echo htmlspecialchars($selectedDate); ?>">
+                    <p class="field-hint">For Weekly/Monthly, this picks which week/month.</p>
+                </div>
+
+                <div id="custom-fields" class="custom-fields" <?php echo $selectedPeriod !== 'custom' ? 'hidden' : ''; ?>>
+                    <label for="start">Start Date</label>
+                    <input type="date" id="start" name="start" value="<?php echo htmlspecialchars($selectedStart); ?>">
+                    <label for="end">End Date</label>
+                    <input type="date" id="end" name="end" value="<?php echo htmlspecialchars($selectedEnd); ?>">
+                </div>
+            </div>
+
+            <div class="filter-actions">
+                <button type="submit" class="btn btn--primary">View Report</button>
+            </div>
+        </form>
+
+        <?php if ($summary !== null): ?>
+
+        <h2 class="section-heading">Summary</h2>
+        <div class="card-grid">
+            <div class="stat-card"><span class="stat-card__label">Total Revenue</span><span class="stat-card__value">₦<?php echo number_format((float) $summary['total_revenue'], 2); ?></span></div>
+            <div class="stat-card"><span class="stat-card__label">Cash Total</span><span class="stat-card__value">₦<?php echo number_format((float) $summary['cash_total'], 2); ?></span></div>
+            <div class="stat-card"><span class="stat-card__label">Transfer Total</span><span class="stat-card__value">₦<?php echo number_format((float) $summary['transfer_total'], 2); ?></span></div>
+            <div class="stat-card"><span class="stat-card__label">POS Total</span><span class="stat-card__value">₦<?php echo number_format((float) $summary['pos_total'], 2); ?></span></div>
+            <div class="stat-card"><span class="stat-card__label">Tips</span><span class="stat-card__value">₦<?php echo number_format((float) $summary['tips_total'], 2); ?></span></div>
+            <div class="stat-card"><span class="stat-card__label">Worker Commissions</span><span class="stat-card__value">₦<?php echo number_format((float) $summary['worker_commissions'], 2); ?></span></div>
+            <div class="stat-card"><span class="stat-card__label">Salon Earnings</span><span class="stat-card__value">₦<?php echo number_format((float) $summary['salon_earnings'], 2); ?></span></div>
+            <div class="stat-card"><span class="stat-card__label">Number of Sales</span><span class="stat-card__value"><?php echo (int) $summary['record_count']; ?></span></div>
+        </div>
+
+        <h2 class="section-heading">Worker Performance</h2>
+        <table class="data-table">
+            <thead><tr><th>Worker</th><th>Sales</th><th>Revenue</th><th>Commission</th><th>Tips</th></tr></thead>
+            <tbody>
+                <?php if (empty($workerPerformance)): ?>
+                    <tr><td colspan="5" class="empty-row">No data for this period.</td></tr>
+                <?php endif; ?>
+                <?php foreach ($workerPerformance as $w): ?>
+                <tr>
+                    <td><?php echo htmlspecialchars($w['full_name']); ?></td>
+                    <td><?php echo (int) $w['record_count']; ?></td>
+                    <td class="amount">₦<?php echo number_format((float) $w['revenue'], 2); ?></td>
+                    <td class="amount">₦<?php echo number_format((float) $w['commission'], 2); ?></td>
+                    <td class="amount">₦<?php echo number_format((float) $w['tips'], 2); ?></td>
+                </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+
+        <?php endif; ?>
+    </main>
+</div>
