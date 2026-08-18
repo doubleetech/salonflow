@@ -151,6 +151,41 @@ input:focus, select:focus, textarea:focus {
 .btn--primary { background: var(--color-bottle); color: var(--color-paper); margin-top: 20px; }
 .btn--primary:hover { background: var(--color-brass-dark); }
 
+.password-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-wrapper input {
+    width: 100%;
+    padding-right: 45px; /* Make room for the toggle button */
+}
+
+.toggle-password {
+    position: absolute;
+    right: 10px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+    font-size: 18px;
+    line-height: 1;
+    color: #666;
+    transition: color 0.2s;
+    z-index: 2;
+}
+
+.toggle-password:hover {
+    color: #333;
+}
+
+.toggle-password:focus {
+    outline: 2px solid #fcfcfc;
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
 .link-muted, .link-back, .hint-muted {
     display: block;
     text-align: center;
