@@ -13,7 +13,12 @@
             <input type="text" id="username" name="username" required autofocus autocomplete="username">
 
             <label for="password">Password</label>
-            <input type="password" id="password" name="password" required autocomplete="current-password">
+             <div class="password-wrapper">
+                <input type="password" id="password" name="password" required autocomplete="current-password">
+                <button type="button" class="toggle-password" aria-label="Toggle password visibility" style="display: none;">
+                    <i class="fas fa-eye"></i>
+                </button>
+            </div>
 
             <button type="submit" class="btn btn--primary">Log In</button>
         </form>
@@ -22,3 +27,31 @@
         <a class="link-back" href="<?php echo APP_URL; ?>/index.php?route=who-are-you">&larr; Back</a>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const passwordInput = document.getElementById('password');
+    const toggleButton = document.querySelector('.toggle-password');
+    const eyeIcon = toggleButton.querySelector('i');
+    
+    // Show toggle button when user starts typing
+    passwordInput.addEventListener('input', function() {
+        if (this.value.length > 0) {
+            toggleButton.style.display = 'block';
+        } else {
+            toggleButton.style.display = 'none';
+        }
+    });
+    
+    // Toggle password visibility
+    toggleButton.addEventListener('click', function() {
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            eyeIcon.className = 'fas fa-eye-slash';
+        } else {
+            passwordInput.type = 'password';
+            eyeIcon.className = 'fas fa-eye';
+        }
+    });
+});
+</script>
