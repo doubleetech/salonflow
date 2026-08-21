@@ -488,6 +488,87 @@ input:focus, select:focus, textarea:focus {
 
 .close-day-form { margin-bottom: 16px; }
 
+
+.date-input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    font-family: inherit;
+}
+
+.date-input:focus {
+    outline: 2px solid #007bff;
+    outline-offset: 2px;
+    border-color: transparent;
+}
+
+.date-input::placeholder {
+    color: #999;
+}
+
+.date-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.date-input-wrapper .date-input {
+    width: 100%;
+    padding: 8px 40px 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    font-family: inherit;
+}
+
+.date-input-wrapper .date-input:focus {
+    outline: 2px solid #007bff;
+    outline-offset: 2px;
+    border-color: transparent;
+}
+
+.date-input-wrapper .date-input::placeholder {
+    color: #999;
+}
+
+.date-input-wrapper .date-icon {
+    position: absolute;
+    right: 12px;
+    color: #666;
+    font-size: 16px;
+    cursor: pointer;
+    pointer-events: auto;
+    z-index: 2;
+    transition: color 0.2s;
+}
+
+.date-input-wrapper .date-icon:hover {
+    color: #007bff;
+}
+
+/* Flatpickr custom styling */
+.flatpickr-calendar {
+    font-size: 14px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.flatpickr-day.selected {
+    background: #007bff;
+    border-color: #007bff;
+}
+
+.flatpickr-day.today {
+    border-color: #007bff;
+}
+
+.flatpickr-day:hover {
+    background: #e6f0ff;
+}
+
 /* ---------- Pagination ---------- */
 .pagination {
     display: flex;

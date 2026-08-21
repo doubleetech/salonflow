@@ -1,8 +1,21 @@
 <?php
 $selectedPeriod = $_GET['period'] ?? 'daily';
+
+// Helper function to convert Y-m-d to d-m-Y for display
+function formatDateForDisplay($date) {
+    if (empty($date) || $date === '0000-00-00') return '';
+    $timestamp = strtotime($date);
+    return $timestamp ? date('d-m-Y', $timestamp) : $date;
+}
+
 $selectedDate = $_GET['date'] ?? date('Y-m-d');
 $selectedStart = $_GET['start'] ?? date('Y-m-d');
 $selectedEnd = $_GET['end'] ?? date('Y-m-d');
+
+// Format dates for display in DD-MM-YYYY
+$displayDate = formatDateForDisplay($selectedDate);
+$displayStart = formatDateForDisplay($selectedStart);
+$displayEnd = formatDateForDisplay($selectedEnd);
 ?>
 <div class="app-shell">
     <header class="topbar">
@@ -38,15 +51,24 @@ $selectedEnd = $_GET['end'] ?? date('Y-m-d');
 
                 <div id="date-field" <?php echo $selectedPeriod === 'custom' ? 'hidden' : ''; ?>>
                     <label for="date">Date</label>
-                    <input type="date" id="date" name="date" value="<?php echo htmlspecialchars($selectedDate); ?>">
+                    <div class="date-input-wrapper">
+                        <input type="text" id="date" name="date" value="<?php echo htmlspecialchars($displayDate); ?>" placeholder="DD-MM-YYYY" class="date-input" autocomplete="off">
+                        <i class="fas fa-calendar-alt date-icon"></i>
+                    </div>
                     <p class="field-hint">For Weekly/Monthly, this picks which week/month.</p>
                 </div>
 
                 <div id="custom-fields" class="custom-fields" <?php echo $selectedPeriod !== 'custom' ? 'hidden' : ''; ?>>
                     <label for="start">Start Date</label>
-                    <input type="date" id="start" name="start" value="<?php echo htmlspecialchars($selectedStart); ?>">
+                    <div class="date-input-wrapper">
+                        <input type="text" id="start" name="start" value="<?php echo htmlspecialchars($displayStart); ?>" placeholder="DD-MM-YYYY" class="date-input" autocomplete="off">
+                        <i class="fas fa-calendar-alt date-icon"></i>
+                    </div>
                     <label for="end">End Date</label>
-                    <input type="date" id="end" name="end" value="<?php echo htmlspecialchars($selectedEnd); ?>">
+                    <div class="date-input-wrapper">
+                        <input type="text" id="end" name="end" value="<?php echo htmlspecialchars($displayEnd); ?>" placeholder="DD-MM-YYYY" class="date-input" autocomplete="off">
+                        <i class="fas fa-calendar-alt date-icon"></i>
+                    </div>
                 </div>
             </div>
 
