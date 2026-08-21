@@ -101,6 +101,7 @@ $router->get('cashier/reports', ['CashierController', 'reports']);
 // --- Worker routes (worker's OWN dashboard/reports — WorkerPortalController) ---
 $router->get('worker/dashboard', ['WorkerPortalController', 'dashboard']);
 $router->get('worker/reports', ['WorkerPortalController', 'reports']);
+$router->get('worker/reports/export', ['WorkerPortalController', 'exportPdf']); 
 $router->get('worker/heartbeat', ['WorkerPortalController', 'heartbeat']);
 
 $router->dispatch();

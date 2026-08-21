@@ -76,7 +76,8 @@ $currentMethod = $field('payment_method', 'cash');
 
             <label for="amount_made">Amount Made (₦)</label>
             <input type="number" id="amount_made" name="amount_made" step="0.01" min="0.01"
-                   value="<?php echo htmlspecialchars($field('amount_made', '')); ?>" required>
+                   value="<?php echo htmlspecialchars($field('amount_made', '')); ?>" required
+                   class="no-spinner">
 
             <label for="payment_method">Payment Method</label>
             <select id="payment_method" name="payment_method" required>
@@ -101,9 +102,10 @@ $currentMethod = $field('payment_method', 'cash');
                        value="<?php echo htmlspecialchars($field('combo_pos', '0', 'amount_pos')); ?>">
             </div>
 
-            <label for="tip_amount">Tip (₦, optional)</label>
+           <label for="tip_amount">Tip (₦, optional)</label>
             <input type="number" id="tip_amount" name="tip_amount" step="0.01" min="0"
-                   value="<?php echo htmlspecialchars($field('tip_amount', '0')); ?>">
+                value="<?php echo htmlspecialchars($field('tip_amount', '0')); ?>"
+                class="no-spinner">
             <p class="field-hint">Tips go entirely to the worker and are never part of the commission calculation.</p>
 
             <label for="note">Note (optional)</label>
