@@ -74,6 +74,7 @@ $displayEnd = formatDateForDisplay($selectedEnd);
 
             <div class="filter-actions">
                 <button type="submit" class="btn btn--primary">View Report</button>
+                <button type="submit" name="route" value="worker/reports/export" class="btn btn--primary btn--brass">Export PDF</button>
             </div>
         </form>
 

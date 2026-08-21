@@ -31,6 +31,13 @@
             <div class="stat-card"><span class="stat-card__label">Month-to-Date Revenue</span><span class="stat-card__value" id="monthRevenue">₦<?php echo number_format((float) $monthSummary['total_revenue'], 2); ?></span></div>
         </div>
 
+        <h2 class="section-heading">Revenue + Tips</h2>
+        <div class="card-grid" id="revenueTipsCards">
+            <div class="stat-card stat-card--tips"><span class="stat-card__label">Today's Revenue + Tips</span><span class="stat-card__value" id="todayRevenueTips">₦<?php echo number_format((float) $todaySummary['total_revenue'] + (float) $todaySummary['tips_total'], 2); ?></span></div>
+            <div class="stat-card stat-card--tips"><span class="stat-card__label">Week-to-Date Revenue + Tips</span><span class="stat-card__value" id="weekRevenueTips">₦<?php echo number_format((float) $weekSummary['total_revenue'] + (float) $weekSummary['tips_total'], 2); ?></span></div>
+            <div class="stat-card stat-card--tips"><span class="stat-card__label">Month-to-Date Revenue + Tips</span><span class="stat-card__value" id="monthRevenueTips">₦<?php echo number_format((float) $monthSummary['total_revenue'] + (float) $monthSummary['tips_total'], 2); ?></span></div>
+        </div>
+
         <h2 class="section-heading">Today, at a Glance</h2>
         <div class="card-grid" id="todayGlance">
             <div class="stat-card"><span class="stat-card__label">Cash Total</span><span class="stat-card__value" id="cashTotal">₦<?php echo number_format((float) $todaySummary['cash_total'], 2); ?></span></div>

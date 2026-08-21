@@ -276,7 +276,6 @@ document.addEventListener('DOMContentLoaded', function () {
         } else if (currentRoute === 'worker/dashboard') {
             updateWorkerDashboard(data);
         } else if (currentRoute === 'admin/reports' || currentRoute === 'cashier/reports' || currentRoute === 'worker/reports') {
-            
             console.log('Reports page - heartbeat active');
         }
         
@@ -336,6 +335,24 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         if (salonEarnings && summary.salon_earnings !== undefined) {
             salonEarnings.textContent = '₦' + parseFloat(summary.salon_earnings).toFixed(2);
+        }
+        
+        // Update Revenue + Tips cards
+        var todayRevenueTips = document.getElementById('todayRevenueTips');
+        var weekRevenueTips = document.getElementById('weekRevenueTips');
+        var monthRevenueTips = document.getElementById('monthRevenueTips');
+
+        if (todayRevenueTips && data.data.todaySummary) {
+            var todayTotal = parseFloat(data.data.todaySummary.total_revenue) + parseFloat(data.data.todaySummary.tips_total);
+            todayRevenueTips.textContent = '₦' + todayTotal.toFixed(2);
+        }
+        if (weekRevenueTips && data.data.weekSummary) {
+            var weekTotal = parseFloat(data.data.weekSummary.total_revenue) + parseFloat(data.data.weekSummary.tips_total);
+            weekRevenueTips.textContent = '₦' + weekTotal.toFixed(2);
+        }
+        if (monthRevenueTips && data.data.monthSummary) {
+            var monthTotal = parseFloat(data.data.monthSummary.total_revenue) + parseFloat(data.data.monthSummary.tips_total);
+            monthRevenueTips.textContent = '₦' + monthTotal.toFixed(2);
         }
     }
     
