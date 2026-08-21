@@ -13,16 +13,18 @@
             <label for="new_password">New Password</label>
             <div class="password-wrapper">
                 <input type="password" id="new_password" name="new_password" required minlength="8">
-                <button type="button" class="toggle-password" aria-label="Toggle password visibility" style="display: none;">
+                <button type="button" class="toggle-password" aria-label="Toggle password visibility">
                     <i class="fas fa-eye"></i>
                 </button>
+            </div>
 
             <label for="confirm_password">Confirm Password</label>
             <div class="password-wrapper">
                 <input type="password" id="confirm_password" name="confirm_password" required minlength="8">
-                <button type="button" class="toggle-password" aria-label="Toggle password visibility" style="display: none;">
+                <button type="button" class="toggle-password" aria-label="Toggle password visibility">
                     <i class="fas fa-eye"></i>
                 </button>
+            </div>
 
             <button type="submit" class="btn btn--primary">Save Password</button>
         </form>
@@ -30,29 +32,38 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-    const passwordInput = document.getElementById('password');
-    const toggleButton = document.querySelector('.toggle-password');
-    const eyeIcon = toggleButton.querySelector('i');
+document.addEventListener('DOMContentLoaded', function() {
+    const passwordInputs = document.querySelectorAll('input[type="password"]');
     
-    // Show toggle button when user starts typing
-    passwordInput.addEventListener('input', function() {
-        if (this.value.length > 0) {
-            toggleButton.style.display = 'block';
-        } else {
-            toggleButton.style.display = 'none';
-        }
-    });
-    
-    // Toggle password visibility
-    toggleButton.addEventListener('click', function() {
-        if (passwordInput.type === 'password') {
-            passwordInput.type = 'text';
-            eyeIcon.className = 'fas fa-eye-slash';
-        } else {
-            passwordInput.type = 'password';
-            eyeIcon.className = 'fas fa-eye';
-        }
+    passwordInputs.forEach(function(input) {
+        const wrapper = input.closest('.password-wrapper');
+        if (!wrapper) return;
+        
+        const toggleButton = wrapper.querySelector('.toggle-password');
+        if (!toggleButton) return;
+        
+        const eyeIcon = toggleButton.querySelector('i');
+        
+        toggleButton.style.display = 'none';
+        
+        input.addEventListener('input', function() {
+            if (this.value.length > 0) {
+                toggleButton.style.display = 'block';
+            } else {
+                toggleButton.style.display = 'none';
+            }
+        });
+        
+        // Toggle password visibility
+        toggleButton.addEventListener('click', function() {
+            if (input.type === 'password') {
+                input.type = 'text';
+                eyeIcon.className = 'fas fa-eye-slash';
+            } else {
+                input.type = 'password';
+                eyeIcon.className = 'fas fa-eye';
+            }
+        });
     });
 });
 </script>

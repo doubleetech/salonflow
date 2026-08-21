@@ -39,6 +39,19 @@ class WorkerPortalController
         $worker = $this->currentWorkerProfile();
 
         $pageTitle = 'My Reports';
+        
+        // Convert dates from DD-MM-YYYY to Y-m-d before passing to DateRange
+        // This handles the conversion for the backend processing
+        if (isset($_GET['date']) && preg_match('/^\d{2}-\d{2}-\d{4}$/', $_GET['date'])) {
+            $_GET['date'] = DateRange::normalizeDate($_GET['date']);
+        }
+        if (isset($_GET['start']) && preg_match('/^\d{2}-\d{2}-\d{4}$/', $_GET['start'])) {
+            $_GET['start'] = DateRange::normalizeDate($_GET['start']);
+        }
+        if (isset($_GET['end']) && preg_match('/^\d{2}-\d{2}-\d{4}$/', $_GET['end'])) {
+            $_GET['end'] = DateRange::normalizeDate($_GET['end']);
+        }
+        
         [$range, $rangeError] = DateRange::resolve($_GET);
 
         $summary = null;
@@ -47,6 +60,11 @@ class WorkerPortalController
         if (!$rangeError) {
             $summary = ReportModel::workerOwnSummary($worker['id'], $range['start'], $range['end']);
         }
+
+        // Format dates for display in DD-MM-YYYY format
+        $displayDate = DateRange::formatForDisplay($_GET['date'] ?? date('Y-m-d'));
+        $displayStart = DateRange::formatForDisplay($_GET['start'] ?? date('Y-m-d'));
+        $displayEnd = DateRange::formatForDisplay($_GET['end'] ?? date('Y-m-d'));
 
         require __DIR__ . '/../views/layouts/header.php';
         require __DIR__ . '/../views/worker/reports.php';
