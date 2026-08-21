@@ -218,4 +218,60 @@ class TransactionModel
         $stmt->execute(['branch_id' => $branchId]);
         return $stmt->fetch();
     }
+
+    /**
+     * Count new transactions since a given timestamp
+     */
+    public static function countNewSince($timestamp): int
+    {
+        $db = Database::connect();
+        $stmt = $db->prepare(
+            "SELECT COUNT(*) as count 
+             FROM transactions 
+             WHERE created_at > FROM_UNIXTIME(:timestamp)"
+        );
+        $stmt->execute(['timestamp' => $timestamp]);
+        $result = $stmt->fetch();
+        return (int) $result['count'];
+    }
+
+    /**
+     * Count new transactions since a given timestamp for a specific branch
+     */
+    public static function countNewSinceForBranch($timestamp, $branchId): int
+    {
+        $db = Database::connect();
+        $stmt = $db->prepare(
+            "SELECT COUNT(*) as count 
+             FROM transactions 
+             WHERE created_at > FROM_UNIXTIME(:timestamp) 
+             AND branch_id = :branch_id"
+        );
+        $stmt->execute([
+            'timestamp' => $timestamp,
+            'branch_id' => $branchId
+        ]);
+        $result = $stmt->fetch();
+        return (int) $result['count'];
+    }
+
+    /**
+     * Count new transactions since a given timestamp for a specific worker
+     */
+    public static function countNewSinceForWorker($timestamp, $workerId): int
+    {
+        $db = Database::connect();
+        $stmt = $db->prepare(
+            "SELECT COUNT(*) as count 
+             FROM transactions 
+             WHERE created_at > FROM_UNIXTIME(:timestamp) 
+             AND worker_id = :worker_id"
+        );
+        $stmt->execute([
+            'timestamp' => $timestamp,
+            'worker_id' => $workerId
+        ]);
+        $result = $stmt->fetch();
+        return (int) $result['count'];
+    }
 }

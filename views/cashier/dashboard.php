@@ -15,7 +15,7 @@
             <?php if (!$isTodayClosed): ?>
                 <a class="btn btn--primary btn--small" href="<?php echo APP_URL; ?>/index.php?route=cashier/sales/create">+ Record Sale</a>
             <?php else: ?>
-                <span class="badge badge--muted">Today's Day Is Closed</span>
+                <span class="badge badge--muted" id="todayStatus">Today's Day Is Closed</span>
             <?php endif; ?>
         </div>
 
@@ -30,11 +30,11 @@
         <?php endif; ?>
 
         <div class="card-grid">
-            <div class="stat-card"><span class="stat-card__label">Today's Records</span><span class="stat-card__value"><?php echo (int) $summary['record_count']; ?></span></div>
-            <div class="stat-card"><span class="stat-card__label">Today's Revenue</span><span class="stat-card__value">₦<?php echo number_format((float) $summary['total_revenue'], 2); ?></span></div>
-            <div class="stat-card"><span class="stat-card__label">Cash Total</span><span class="stat-card__value">₦<?php echo number_format((float) $summary['cash_total'], 2); ?></span></div>
-            <div class="stat-card"><span class="stat-card__label">Transfer Total</span><span class="stat-card__value">₦<?php echo number_format((float) $summary['transfer_total'], 2); ?></span></div>
-            <div class="stat-card"><span class="stat-card__label">POS Total</span><span class="stat-card__value">₦<?php echo number_format((float) $summary['pos_total'], 2); ?></span></div>
+            <div class="stat-card"><span class="stat-card__label">Today's Records</span><span class="stat-card__value" id="todayRecords"><?php echo (int) $summary['record_count']; ?></span></div>
+            <div class="stat-card"><span class="stat-card__label">Today's Revenue</span><span class="stat-card__value" id="todayRevenue">₦<?php echo number_format((float) $summary['total_revenue'], 2); ?></span></div>
+            <div class="stat-card"><span class="stat-card__label">Cash Total</span><span class="stat-card__value" id="cashTotal">₦<?php echo number_format((float) $summary['cash_total'], 2); ?></span></div>
+            <div class="stat-card"><span class="stat-card__label">Transfer Total</span><span class="stat-card__value" id="transferTotal">₦<?php echo number_format((float) $summary['transfer_total'], 2); ?></span></div>
+            <div class="stat-card"><span class="stat-card__label">POS Total</span><span class="stat-card__value" id="posTotal">₦<?php echo number_format((float) $summary['pos_total'], 2); ?></span></div>
         </div>
     </main>
 </div>

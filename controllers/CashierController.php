@@ -32,6 +32,51 @@ class CashierController
         require __DIR__ . '/../views/layouts/footer.php';
     }
 
+    /**
+     * API endpoint for heartbeat updates on cashier dashboard
+     * Returns fresh data without reloading the page
+     */
+    public function heartbeat(): void
+    {
+        Auth::requireCashier();
+        $branchId = $this->currentBranchId();
+        
+        // Get the last update timestamp from the request
+        $lastUpdate = isset($_GET['last_update']) ? (int)$_GET['last_update'] : 0;
+        
+        $today = date('Y-m-d');
+        
+        // Check if there are new transactions since last update for this branch
+        $newTransactions = TransactionModel::countNewSinceForBranch($lastUpdate, $branchId);
+        
+        // If no new transactions, return 304 Not Modified
+        if ($newTransactions === 0 && $lastUpdate > 0) {
+            http_response_code(304);
+            exit;
+        }
+        
+        // Get fresh data
+        $summary = TransactionModel::summaryForBranchToday($branchId);
+        $isTodayClosed = ClosureModel::isClosed($branchId, $today);
+        $pendingReopen = ClosureModel::findReopenedForBranch($branchId);
+        
+        // Get current timestamp
+        $currentTime = time();
+        
+        // Return JSON response
+        header('Content-Type: application/json');
+        echo json_encode([
+            'success' => true,
+            'timestamp' => $currentTime,
+            'data' => [
+                'summary' => $summary,
+                'isTodayClosed' => $isTodayClosed,
+                'pendingReopen' => $pendingReopen,
+            ]
+        ]);
+        exit;
+    }
+
     /** Shown once per business day, before anything else, if no branch has been picked yet. */
     public function chooseBranchForm(): void
     {

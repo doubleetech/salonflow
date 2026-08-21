@@ -33,6 +33,9 @@ $router->get('logout', ['AuthController', 'logout']);
 // --- Admin routes ---
 $router->get('admin/dashboard', ['AdminController', 'dashboard']);
 
+// Heartbeat for live dashboard updates
+$router->get('admin/heartbeat', ['AdminController', 'heartbeat']);
+
 // Business settings
 $router->get('admin/settings', ['SettingsController', 'edit']);
 $router->post('admin/settings', ['SettingsController', 'update']);
@@ -79,6 +82,7 @@ $router->get('admin/audit-log', ['AuditLogController', 'index']);
 
 // --- Cashier routes ---
 $router->get('cashier/dashboard', ['CashierController', 'dashboard']);
+$router->get('cashier/heartbeat', ['CashierController', 'heartbeat']); // Heartbeat for live updates
 
 // Branch choice — cashiers rotate between branches and pick one fresh
 // each business day, before they can reach anything else.
@@ -97,5 +101,6 @@ $router->get('cashier/reports', ['CashierController', 'reports']);
 // --- Worker routes (worker's OWN dashboard/reports — WorkerPortalController) ---
 $router->get('worker/dashboard', ['WorkerPortalController', 'dashboard']);
 $router->get('worker/reports', ['WorkerPortalController', 'reports']);
+$router->get('worker/heartbeat', ['WorkerPortalController', 'heartbeat']);
 
 $router->dispatch();

@@ -71,6 +71,53 @@ class WorkerPortalController
         require __DIR__ . '/../views/layouts/footer.php';
     }
 
+    /**
+     * API endpoint for heartbeat updates on worker dashboard
+     * Returns fresh data without reloading the page
+     */
+    public function heartbeat(): void
+    {
+        Auth::requireWorker();
+        $worker = $this->currentWorkerProfile();
+        
+        // Get the last update timestamp from the request
+        $lastUpdate = isset($_GET['last_update']) ? (int)$_GET['last_update'] : 0;
+        
+        $today = date('Y-m-d');
+        
+        // Check if there are new transactions since last update for this worker
+        $newTransactions = TransactionModel::countNewSinceForWorker($lastUpdate, $worker['id']);
+        
+        // If no new transactions, return 304 Not Modified
+        if ($newTransactions === 0 && $lastUpdate > 0) {
+            http_response_code(304);
+            exit;
+        }
+        
+        // Get fresh data
+        $todaySummary = ReportModel::workerOwnSummary($worker['id'], $today, $today);
+        $weekStart = date('Y-m-d', strtotime('monday this week'));
+        $monthStart = date('Y-m-01');
+        $weekSummary = ReportModel::workerOwnSummary($worker['id'], $weekStart, $today);
+        $monthSummary = ReportModel::workerOwnSummary($worker['id'], $monthStart, $today);
+        
+        // Get current timestamp
+        $currentTime = time();
+        
+        // Return JSON response
+        header('Content-Type: application/json');
+        echo json_encode([
+            'success' => true,
+            'timestamp' => $currentTime,
+            'data' => [
+                'todaySummary' => $todaySummary,
+                'weekSummary' => $weekSummary,
+                'monthSummary' => $monthSummary,
+            ]
+        ]);
+        exit;
+    }
+
     private function redirectIfMustChangePassword(): void
     {
         if (Auth::mustChangePassword()) {

@@ -146,3 +146,271 @@ document.addEventListener('DOMContentLoaded', function () {
         icon.title = 'Click to select date';
     });
 });
+
+// Phase 7: Heartbeat - Live updates for all pages
+document.addEventListener('DOMContentLoaded', function () {
+    // Check if we're on a page that should have heartbeat
+    // We want it on ALL admin and cashier pages
+    var currentRoute = new URLSearchParams(window.location.search).get('route') || '';
+    
+    // Check if this is an admin or cashier page (not login pages)
+    var isAdminPage = currentRoute.startsWith('admin/') && currentRoute !== 'admin-login';
+    var isCashierPage = currentRoute.startsWith('cashier/') && currentRoute !== 'cashier-login';
+    var isWorkerPage = currentRoute.startsWith('worker/') && currentRoute !== 'worker-login';
+    
+    // Also include the main routes without prefix
+    var isMainPage = ['admin/dashboard', 'admin/reports', 'admin/branches', 'admin/workers', 
+                      'admin/cashiers', 'admin/closures', 'admin/audit-log',
+                      'cashier/dashboard', 'cashier/sales', 'cashier/reports',
+                      'worker/dashboard', 'worker/reports'].includes(currentRoute);
+    
+    // If not a page that needs heartbeat, exit
+    if (!isAdminPage && !isCashierPage && !isWorkerPage && !isMainPage) {
+        console.log('Heartbeat not needed for this page:', currentRoute);
+        return;
+    }
+    
+    console.log('Heartbeat initialized for:', currentRoute);
+    
+    // Get the last updated element
+    var lastUpdatedElement = document.getElementById('lastUpdated');
+    
+    // If no lastUpdated element, create one in the topbar
+    if (!lastUpdatedElement) {
+        var topbarUser = document.querySelector('.topbar__user');
+        if (topbarUser) {
+            var indicator = document.createElement('span');
+            indicator.className = 'heartbeat-indicator';
+            indicator.innerHTML = '<span class="live-dot"></span><span class="last-updated" id="lastUpdated">Just now</span>';
+            indicator.style.cssText = 'display:flex;align-items:center;gap:8px;margin-right:15px;font-size:12px;color:#666;';
+            topbarUser.parentNode.insertBefore(indicator, topbarUser);
+            lastUpdatedElement = document.getElementById('lastUpdated');
+        }
+    }
+    
+    if (!lastUpdatedElement) {
+        console.warn('Could not find or create lastUpdated element');
+        return;
+    }
+    
+    // Initialize with current timestamp
+    var lastUpdate = Math.floor(Date.now() / 1000);
+    var isUpdating = false;
+    var appUrl = window.SALONFLOW ? SALONFLOW.APP_URL : '';
+    
+    // Function to format time ago
+    function timeAgo(timestamp) {
+        var seconds = Math.floor((Date.now() / 1000) - timestamp);
+        if (seconds < 60) return 'Just now';
+        var minutes = Math.floor(seconds / 60);
+        if (minutes < 60) return minutes + 'm ago';
+        var hours = Math.floor(minutes / 60);
+        if (hours < 24) return hours + 'h ago';
+        var days = Math.floor(hours / 24);
+        return days + 'd ago';
+    }
+    
+    // Function to update the "last updated" text
+    function updateLastUpdatedText(timestamp) {
+        if (lastUpdatedElement) {
+            lastUpdatedElement.textContent = timeAgo(timestamp);
+        }
+    }
+    
+    // Function to check for updates
+    function checkForUpdates() {
+        if (isUpdating) return;
+        isUpdating = true;
+        
+        // Determine which heartbeat endpoint to use based on route
+        var endpoint = 'admin/heartbeat';
+        if (currentRoute.startsWith('cashier/')) {
+            endpoint = 'cashier/heartbeat';
+        } else if (currentRoute.startsWith('worker/')) {
+            endpoint = 'worker/heartbeat';
+        }
+        
+        var url = appUrl + '/index.php?route=' + endpoint + '&last_update=' + lastUpdate;
+        
+        fetch(url, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(function(response) {
+            if (response.status === 304) {
+                // No new data
+                isUpdating = false;
+                updateLastUpdatedText(lastUpdate);
+                return null;
+            }
+            return response.json();
+        })
+        .then(function(data) {
+            isUpdating = false;
+            
+            if (!data || !data.success) {
+                return;
+            }
+            
+            // Update last update timestamp
+            lastUpdate = data.timestamp;
+            updateLastUpdatedText(lastUpdate);
+            
+            // Update page content
+            updatePageContent(data);
+        })
+        .catch(function(error) {
+            console.error('Heartbeat error:', error);
+            isUpdating = false;
+        });
+    }
+    
+    // Function to update page content based on current page
+    function updatePageContent(data) {
+        // For dashboard pages - update stats
+        if (currentRoute === 'admin/dashboard') {
+            updateAdminDashboard(data);
+        } else if (currentRoute === 'cashier/dashboard') {
+            updateCashierDashboard(data);
+        } else if (currentRoute === 'worker/dashboard') {
+            updateWorkerDashboard(data);
+        } else if (currentRoute === 'admin/reports' || currentRoute === 'cashier/reports' || currentRoute === 'worker/reports') {
+            
+            console.log('Reports page - heartbeat active');
+        }
+        
+        // Flash animation for any stat cards on the page
+        var cards = document.querySelectorAll('.stat-card');
+        cards.forEach(function(card) {
+            card.classList.add('flash-update');
+            setTimeout(function() {
+                card.classList.remove('flash-update');
+            }, 500);
+        });
+    }
+    
+    // Update admin dashboard
+    function updateAdminDashboard(data) {
+        if (!data.data || !data.data.todaySummary) return;
+        
+        var summary = data.data.todaySummary;
+        
+        // Update revenue cards
+        var todayRevenue = document.getElementById('todayRevenue');
+        var weekRevenue = document.getElementById('weekRevenue');
+        var monthRevenue = document.getElementById('monthRevenue');
+        
+        if (todayRevenue && summary.total_revenue !== undefined) {
+            todayRevenue.textContent = '₦' + parseFloat(summary.total_revenue).toFixed(2);
+        }
+        if (weekRevenue && data.data.weekSummary) {
+            weekRevenue.textContent = '₦' + parseFloat(data.data.weekSummary.total_revenue).toFixed(2);
+        }
+        if (monthRevenue && data.data.monthSummary) {
+            monthRevenue.textContent = '₦' + parseFloat(data.data.monthSummary.total_revenue).toFixed(2);
+        }
+        
+        // Update today's glance cards
+        var cashTotal = document.getElementById('cashTotal');
+        var transferTotal = document.getElementById('transferTotal');
+        var posTotal = document.getElementById('posTotal');
+        var tipsTotal = document.getElementById('tipsTotal');
+        var commissionsTotal = document.getElementById('commissionsTotal');
+        var salonEarnings = document.getElementById('salonEarnings');
+        
+        if (cashTotal && summary.cash_total !== undefined) {
+            cashTotal.textContent = '₦' + parseFloat(summary.cash_total).toFixed(2);
+        }
+        if (transferTotal && summary.transfer_total !== undefined) {
+            transferTotal.textContent = '₦' + parseFloat(summary.transfer_total).toFixed(2);
+        }
+        if (posTotal && summary.pos_total !== undefined) {
+            posTotal.textContent = '₦' + parseFloat(summary.pos_total).toFixed(2);
+        }
+        if (tipsTotal && summary.tips_total !== undefined) {
+            tipsTotal.textContent = '₦' + parseFloat(summary.tips_total).toFixed(2);
+        }
+        if (commissionsTotal && summary.worker_commissions !== undefined) {
+            commissionsTotal.textContent = '₦' + parseFloat(summary.worker_commissions).toFixed(2);
+        }
+        if (salonEarnings && summary.salon_earnings !== undefined) {
+            salonEarnings.textContent = '₦' + parseFloat(summary.salon_earnings).toFixed(2);
+        }
+    }
+    
+    // Update cashier dashboard
+    function updateCashierDashboard(data) {
+        if (!data.data || !data.data.summary) return;
+        
+        var summary = data.data.summary;
+        
+        var todayRecords = document.getElementById('todayRecords');
+        var todayRevenue = document.getElementById('todayRevenue');
+        var cashTotal = document.getElementById('cashTotal');
+        var transferTotal = document.getElementById('transferTotal');
+        var posTotal = document.getElementById('posTotal');
+        
+        if (todayRecords && summary.record_count !== undefined) {
+            todayRecords.textContent = summary.record_count || 0;
+        }
+        if (todayRevenue && summary.total_revenue !== undefined) {
+            todayRevenue.textContent = '₦' + parseFloat(summary.total_revenue).toFixed(2);
+        }
+        if (cashTotal && summary.cash_total !== undefined) {
+            cashTotal.textContent = '₦' + parseFloat(summary.cash_total).toFixed(2);
+        }
+        if (transferTotal && summary.transfer_total !== undefined) {
+            transferTotal.textContent = '₦' + parseFloat(summary.transfer_total).toFixed(2);
+        }
+        if (posTotal && summary.pos_total !== undefined) {
+            posTotal.textContent = '₦' + parseFloat(summary.pos_total).toFixed(2);
+        }
+    }
+    
+    // Update worker dashboard
+    function updateWorkerDashboard(data) {
+        if (!data.data || !data.data.summary) return;
+        
+        var summary = data.data.summary;
+        
+        var salesCount = document.getElementById('salesCount');
+        var revenueTotal = document.getElementById('revenueTotal');
+        var commissionTotal = document.getElementById('commissionTotal');
+        var tipsTotal = document.getElementById('tipsTotal');
+        
+        if (salesCount && summary.record_count !== undefined) {
+            salesCount.textContent = summary.record_count || 0;
+        }
+        if (revenueTotal && summary.revenue !== undefined) {
+            revenueTotal.textContent = '₦' + parseFloat(summary.revenue).toFixed(2);
+        }
+        if (commissionTotal && summary.commission !== undefined) {
+            commissionTotal.textContent = '₦' + parseFloat(summary.commission).toFixed(2);
+        }
+        if (tipsTotal && summary.tips !== undefined) {
+            tipsTotal.textContent = '₦' + parseFloat(summary.tips).toFixed(2);
+        }
+    }
+    
+    // Update the last updated text every 60 seconds
+    setInterval(function() {
+        updateLastUpdatedText(lastUpdate);
+    }, 60000);
+    
+    // Check for updates every 5 seconds
+    setInterval(checkForUpdates, 5000);
+    console.log('Heartbeat running. Checking every 5 seconds.');
+    
+    // Also check when the page becomes visible again
+    document.addEventListener('visibilitychange', function() {
+        if (!document.hidden) {
+            checkForUpdates();
+        }
+    });
+    
+    // Initial check after 1 second
+    setTimeout(function() {
+        checkForUpdates();
+    }, 1000);
+});
