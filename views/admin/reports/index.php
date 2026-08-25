@@ -5,22 +5,15 @@
 // instead of silently resetting (same lesson learned from the sale form).
 $selectedPeriod = $_GET['period'] ?? 'daily';
 
-// Helper function to convert Y-m-d to d-m-Y for display
-function formatDateForDisplay($date) {
-    if (empty($date) || $date === '0000-00-00') return '';
-    $timestamp = strtotime($date);
-    return $timestamp ? date('d-m-Y', $timestamp) : $date;
-}
-
 $selectedDate = $_GET['date'] ?? date('Y-m-d');
 $selectedStart = $_GET['start'] ?? date('Y-m-d');
 $selectedEnd = $_GET['end'] ?? date('Y-m-d');
 $selectedBranch = $_GET['branch_id'] ?? '';
 
 // Format dates for display in DD-MM-YYYY
-$displayDate = formatDateForDisplay($selectedDate);
-$displayStart = formatDateForDisplay($selectedStart);
-$displayEnd = formatDateForDisplay($selectedEnd);
+$displayDate = DateRange::formatForDisplay($selectedDate);
+$displayStart = DateRange::formatForDisplay($selectedStart);
+$displayEnd = DateRange::formatForDisplay($selectedEnd);
 ?>
 <div class="app-shell">
     <header class="topbar">
@@ -102,6 +95,7 @@ $displayEnd = formatDateForDisplay($selectedEnd);
             <div class="stat-card"><span class="stat-card__label">Transfer Total</span><span class="stat-card__value">₦<?php echo number_format((float) $summary['transfer_total'], 2); ?></span></div>
             <div class="stat-card"><span class="stat-card__label">POS Total</span><span class="stat-card__value">₦<?php echo number_format((float) $summary['pos_total'], 2); ?></span></div>
             <div class="stat-card"><span class="stat-card__label">Tips</span><span class="stat-card__value">₦<?php echo number_format((float) $summary['tips_total'], 2); ?></span></div>
+            <div class="stat-card stat-card--tips"><span class="stat-card__label">Total Revenue + Tips</span><span class="stat-card__value">₦<?php echo number_format((float) $summary['total_revenue'] + (float) $summary['tips_total'], 2); ?></span></div>
             <div class="stat-card"><span class="stat-card__label">Worker Commissions</span><span class="stat-card__value">₦<?php echo number_format((float) $summary['worker_commissions'], 2); ?></span></div>
             <div class="stat-card"><span class="stat-card__label">Salon Earnings</span><span class="stat-card__value">₦<?php echo number_format((float) $summary['salon_earnings'], 2); ?></span></div>
             <div class="stat-card"><span class="stat-card__label">Number of Sales</span><span class="stat-card__value"><?php echo (int) $summary['record_count']; ?></span></div>

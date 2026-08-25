@@ -4,21 +4,14 @@
 // what the cashier typed.
 $selectedPeriod = $_GET['period'] ?? 'daily';
 
-// Helper function to convert Y-m-d to d-m-Y for display
-function formatDateForDisplay($date) {
-    if (empty($date) || $date === '0000-00-00') return '';
-    $timestamp = strtotime($date);
-    return $timestamp ? date('d-m-Y', $timestamp) : $date;
-}
-
 $selectedDate = $_GET['date'] ?? date('Y-m-d');
 $selectedStart = $_GET['start'] ?? date('Y-m-d');
 $selectedEnd = $_GET['end'] ?? date('Y-m-d');
 
 // Format dates for display in DD-MM-YYYY
-$displayDate = formatDateForDisplay($selectedDate);
-$displayStart = formatDateForDisplay($selectedStart);
-$displayEnd = formatDateForDisplay($selectedEnd);
+$displayDate = DateRange::formatForDisplay($selectedDate);
+$displayStart = DateRange::formatForDisplay($selectedStart);
+$displayEnd = DateRange::formatForDisplay($selectedEnd);
 ?>
 <div class="app-shell">
     <header class="topbar">
@@ -40,7 +33,6 @@ $displayEnd = formatDateForDisplay($selectedEnd);
         <?php endif; ?>
 
         <form method="GET" action="<?php echo APP_URL; ?>/index.php" class="panel-form" id="report-filter-form">
-            <input type="hidden" name="route" value="cashier/reports">
             <div class="filter-row">
                 <div>
                     <label for="period">Report Type</label>
@@ -76,7 +68,8 @@ $displayEnd = formatDateForDisplay($selectedEnd);
             </div>
 
             <div class="filter-actions">
-                <button type="submit" class="btn btn--primary">View Report</button>
+                <button type="submit" name="route" value="cashier/reports" class="btn btn--primary">View Report</button>
+                <button type="submit" name="route" value="cashier/reports/export" class="btn btn--primary btn--brass">Export PDF</button>
             </div>
         </form>
 
@@ -89,6 +82,7 @@ $displayEnd = formatDateForDisplay($selectedEnd);
             <div class="stat-card"><span class="stat-card__label">Transfer Total</span><span class="stat-card__value">₦<?php echo number_format((float) $summary['transfer_total'], 2); ?></span></div>
             <div class="stat-card"><span class="stat-card__label">POS Total</span><span class="stat-card__value">₦<?php echo number_format((float) $summary['pos_total'], 2); ?></span></div>
             <div class="stat-card"><span class="stat-card__label">Tips</span><span class="stat-card__value">₦<?php echo number_format((float) $summary['tips_total'], 2); ?></span></div>
+            <div class="stat-card stat-card--tips"><span class="stat-card__label">Total Revenue + Tips</span><span class="stat-card__value">₦<?php echo number_format((float) $summary['total_revenue'] + (float) $summary['tips_total'], 2); ?></span></div>
             <div class="stat-card"><span class="stat-card__label">Worker Commissions</span><span class="stat-card__value">₦<?php echo number_format((float) $summary['worker_commissions'], 2); ?></span></div>
             <div class="stat-card"><span class="stat-card__label">Salon Earnings</span><span class="stat-card__value">₦<?php echo number_format((float) $summary['salon_earnings'], 2); ?></span></div>
             <div class="stat-card"><span class="stat-card__label">Number of Sales</span><span class="stat-card__value"><?php echo (int) $summary['record_count']; ?></span></div>

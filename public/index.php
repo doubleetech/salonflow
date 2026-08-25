@@ -97,6 +97,7 @@ $router->post('cashier/sales/edit', ['CashierController', 'editSaleSubmit']);
 $router->post('cashier/sales/close', ['CashierController', 'closeDay']);
 
 $router->get('cashier/reports', ['CashierController', 'reports']);
+$router->get('cashier/reports/export', ['CashierController', 'exportPdf']);
 
 // --- Worker routes (worker's OWN dashboard/reports — WorkerPortalController) ---
 $router->get('worker/dashboard', ['WorkerPortalController', 'dashboard']);

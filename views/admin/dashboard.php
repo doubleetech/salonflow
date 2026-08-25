@@ -12,7 +12,7 @@
     <main class="content">
         <div class="dashboard-header">
             <h1>Welcome back, <?php echo htmlspecialchars(Session::get('user_name')); ?></h1>
-            <div class="live-indicator">
+            <div class="heartbeat-indicator">
                 <span class="live-dot"></span>
                 <span class="live-text">Live</span>
                 <span class="last-updated" id="lastUpdated">Just now</span>

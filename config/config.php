@@ -24,7 +24,7 @@ define('APP_TIMEZONE', 'Africa/Lagos');
 // browser can keep serving an OLD copy of these files indefinitely, even
 // after you've updated them on the server. Appending ?v=X forces the
 // browser to treat it as a new file the moment X changes.
-define('ASSET_VERSION', '7');
+define('ASSET_VERSION', '8');
 
 // --- Session ---
 define('SESSION_NAME', 'salonflow_session');

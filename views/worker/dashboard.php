@@ -15,26 +15,26 @@
 
         <h2 class="section-heading">Today</h2>
         <div class="card-grid">
-            <div class="stat-card"><span class="stat-card__label">Sales</span><span class="stat-card__value"><?php echo (int) $todaySummary['record_count']; ?></span></div>
-            <div class="stat-card"><span class="stat-card__label">Revenue</span><span class="stat-card__value">₦<?php echo number_format((float) $todaySummary['revenue'], 2); ?></span></div>
-            <div class="stat-card"><span class="stat-card__label">My Commission</span><span class="stat-card__value">₦<?php echo number_format((float) $todaySummary['commission'], 2); ?></span></div>
-            <div class="stat-card"><span class="stat-card__label">My Tips</span><span class="stat-card__value">₦<?php echo number_format((float) $todaySummary['tips'], 2); ?></span></div>
+            <div class="stat-card"><span class="stat-card__label">Sales</span><span class="stat-card__value" id="todaySales"><?php echo (int) $todaySummary['record_count']; ?></span></div>
+            <div class="stat-card"><span class="stat-card__label">Revenue</span><span class="stat-card__value" id="todayRevenue">₦<?php echo number_format((float) $todaySummary['revenue'], 2); ?></span></div>
+            <div class="stat-card"><span class="stat-card__label">My Commission</span><span class="stat-card__value" id="todayCommission">₦<?php echo number_format((float) $todaySummary['commission'], 2); ?></span></div>
+            <div class="stat-card"><span class="stat-card__label">My Tips</span><span class="stat-card__value" id="todayTips">₦<?php echo number_format((float) $todaySummary['tips'], 2); ?></span></div>
         </div>
 
         <h2 class="section-heading">Week-to-Date</h2>
         <div class="card-grid">
-            <div class="stat-card"><span class="stat-card__label">Sales</span><span class="stat-card__value"><?php echo (int) $weekSummary['record_count']; ?></span></div>
-            <div class="stat-card"><span class="stat-card__label">Revenue</span><span class="stat-card__value">₦<?php echo number_format((float) $weekSummary['revenue'], 2); ?></span></div>
-            <div class="stat-card"><span class="stat-card__label">My Commission</span><span class="stat-card__value">₦<?php echo number_format((float) $weekSummary['commission'], 2); ?></span></div>
-            <div class="stat-card"><span class="stat-card__label">My Tips</span><span class="stat-card__value">₦<?php echo number_format((float) $weekSummary['tips'], 2); ?></span></div>
+            <div class="stat-card"><span class="stat-card__label">Sales</span><span class="stat-card__value" id="weekSales"><?php echo (int) $weekSummary['record_count']; ?></span></div>
+            <div class="stat-card"><span class="stat-card__label">Revenue</span><span class="stat-card__value" id="weekRevenue">₦<?php echo number_format((float) $weekSummary['revenue'], 2); ?></span></div>
+            <div class="stat-card"><span class="stat-card__label">My Commission</span><span class="stat-card__value" id="weekCommission">₦<?php echo number_format((float) $weekSummary['commission'], 2); ?></span></div>
+            <div class="stat-card"><span class="stat-card__label">My Tips</span><span class="stat-card__value" id="weekTips">₦<?php echo number_format((float) $weekSummary['tips'], 2); ?></span></div>
         </div>
 
         <h2 class="section-heading">Month-to-Date</h2>
         <div class="card-grid">
-            <div class="stat-card"><span class="stat-card__label">Sales</span><span class="stat-card__value"><?php echo (int) $monthSummary['record_count']; ?></span></div>
-            <div class="stat-card"><span class="stat-card__label">Revenue</span><span class="stat-card__value">₦<?php echo number_format((float) $monthSummary['revenue'], 2); ?></span></div>
-            <div class="stat-card"><span class="stat-card__label">My Commission</span><span class="stat-card__value">₦<?php echo number_format((float) $monthSummary['commission'], 2); ?></span></div>
-            <div class="stat-card"><span class="stat-card__label">My Tips</span><span class="stat-card__value">₦<?php echo number_format((float) $monthSummary['tips'], 2); ?></span></div>
+            <div class="stat-card"><span class="stat-card__label">Sales</span><span class="stat-card__value" id="monthSales"><?php echo (int) $monthSummary['record_count']; ?></span></div>
+            <div class="stat-card"><span class="stat-card__label">Revenue</span><span class="stat-card__value" id="monthRevenue">₦<?php echo number_format((float) $monthSummary['revenue'], 2); ?></span></div>
+            <div class="stat-card"><span class="stat-card__label">My Commission</span><span class="stat-card__value" id="monthCommission">₦<?php echo number_format((float) $monthSummary['commission'], 2); ?></span></div>
+            <div class="stat-card"><span class="stat-card__label">My Tips</span><span class="stat-card__value" id="monthTips">₦<?php echo number_format((float) $monthSummary['tips'], 2); ?></span></div>
         </div>
     </main>
 </div>

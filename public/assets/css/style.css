@@ -590,6 +590,18 @@ input:focus, select:focus, textarea:focus {
 }
 
 /* Heartbeat / Live indicator */
+.dashboard-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.stat-card--tips {
+    border-left: 3px solid var(--color-brass);
+}
+
 .heartbeat-indicator {
     display: flex;
     align-items: center;

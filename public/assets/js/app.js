@@ -147,31 +147,28 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
-// Phase 7: Heartbeat - Live updates for all pages
+// Phase 7: Heartbeat - Live updates for dashboard pages only
 document.addEventListener('DOMContentLoaded', function () {
-    // Check if we're on a page that should have heartbeat
-    // We want it on ALL admin and cashier pages
     var currentRoute = new URLSearchParams(window.location.search).get('route') || '';
-    
-    // Check if this is an admin or cashier page (not login pages)
-    var isAdminPage = currentRoute.startsWith('admin/') && currentRoute !== 'admin-login';
-    var isCashierPage = currentRoute.startsWith('cashier/') && currentRoute !== 'cashier-login';
-    var isWorkerPage = currentRoute.startsWith('worker/') && currentRoute !== 'worker-login';
-    
-    // Also include the main routes without prefix
-    var isMainPage = ['admin/dashboard', 'admin/reports', 'admin/branches', 'admin/workers', 
-                      'admin/cashiers', 'admin/closures', 'admin/audit-log',
-                      'cashier/dashboard', 'cashier/sales', 'cashier/reports',
-                      'worker/dashboard', 'worker/reports'].includes(currentRoute);
-    
-    // If not a page that needs heartbeat, exit
-    if (!isAdminPage && !isCashierPage && !isWorkerPage && !isMainPage) {
-        console.log('Heartbeat not needed for this page:', currentRoute);
+
+    // Heartbeat only ever DOES anything on these three pages (see
+    // updatePageContent() below) — polling elsewhere would just hit the
+    // server every 5 seconds for zero visible effect, so we don't.
+    var dashboardRoutes = ['admin/dashboard', 'cashier/dashboard', 'worker/dashboard'];
+
+    if (dashboardRoutes.indexOf(currentRoute) === -1) {
         return;
     }
-    
-    console.log('Heartbeat initialized for:', currentRoute);
-    
+
+    // Small helper since table rows are now rebuilt via innerHTML from
+    // live JSON data — escape anything that came from the database
+    // (branch/worker names) the same way htmlspecialchars() does server-side.
+    function escapeHtml(value) {
+        var div = document.createElement('div');
+        div.textContent = value === undefined || value === null ? '' : String(value);
+        return div.innerHTML;
+    }
+
     // Get the last updated element
     var lastUpdatedElement = document.getElementById('lastUpdated');
     
@@ -189,7 +186,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     
     if (!lastUpdatedElement) {
-        console.warn('Could not find or create lastUpdated element');
         return;
     }
     
@@ -275,8 +271,6 @@ document.addEventListener('DOMContentLoaded', function () {
             updateCashierDashboard(data);
         } else if (currentRoute === 'worker/dashboard') {
             updateWorkerDashboard(data);
-        } else if (currentRoute === 'admin/reports' || currentRoute === 'cashier/reports' || currentRoute === 'worker/reports') {
-            console.log('Reports page - heartbeat active');
         }
         
         // Flash animation for any stat cards on the page
@@ -354,6 +348,43 @@ document.addEventListener('DOMContentLoaded', function () {
             var monthTotal = parseFloat(data.data.monthSummary.total_revenue) + parseFloat(data.data.monthSummary.tips_total);
             monthRevenueTips.textContent = '₦' + monthTotal.toFixed(2);
         }
+
+        // Rebuild the Branch Revenue and Worker Performance tables — the
+        // backend already sends branchBreakdown/workerPerformance in every
+        // heartbeat response, but nothing used to consume it, so these
+        // tables never actually refreshed.
+        var branchTableBody = document.getElementById('branchTableBody');
+        if (branchTableBody && data.data.branchBreakdown) {
+            if (data.data.branchBreakdown.length === 0) {
+                branchTableBody.innerHTML = '<tr><td colspan="3" class="empty-row">No branches yet.</td></tr>';
+            } else {
+                branchTableBody.innerHTML = data.data.branchBreakdown.map(function (b) {
+                    return '<tr>' +
+                        '<td>' + escapeHtml(b.name) + '</td>' +
+                        '<td>' + parseInt(b.record_count, 10) + '</td>' +
+                        '<td class="amount">₦' + parseFloat(b.revenue).toFixed(2) + '</td>' +
+                        '</tr>';
+                }).join('');
+            }
+        }
+
+        var workerTableBody = document.getElementById('workerTableBody');
+        if (workerTableBody && data.data.workerPerformance) {
+            if (data.data.workerPerformance.length === 0) {
+                workerTableBody.innerHTML = '<tr><td colspan="6" class="empty-row">No workers yet.</td></tr>';
+            } else {
+                workerTableBody.innerHTML = data.data.workerPerformance.map(function (w) {
+                    return '<tr>' +
+                        '<td>' + escapeHtml(w.full_name) + '</td>' +
+                        '<td>' + escapeHtml(w.branch_name) + '</td>' +
+                        '<td>' + parseInt(w.record_count, 10) + '</td>' +
+                        '<td class="amount">₦' + parseFloat(w.revenue).toFixed(2) + '</td>' +
+                        '<td class="amount">₦' + parseFloat(w.commission).toFixed(2) + '</td>' +
+                        '<td class="amount">₦' + parseFloat(w.tips).toFixed(2) + '</td>' +
+                        '</tr>';
+                }).join('');
+            }
+        }
     }
     
     // Update cashier dashboard
@@ -387,27 +418,40 @@ document.addEventListener('DOMContentLoaded', function () {
     
     // Update worker dashboard
     function updateWorkerDashboard(data) {
-        if (!data.data || !data.data.summary) return;
-        
-        var summary = data.data.summary;
-        
-        var salesCount = document.getElementById('salesCount');
-        var revenueTotal = document.getElementById('revenueTotal');
-        var commissionTotal = document.getElementById('commissionTotal');
-        var tipsTotal = document.getElementById('tipsTotal');
-        
-        if (salesCount && summary.record_count !== undefined) {
-            salesCount.textContent = summary.record_count || 0;
-        }
-        if (revenueTotal && summary.revenue !== undefined) {
-            revenueTotal.textContent = '₦' + parseFloat(summary.revenue).toFixed(2);
-        }
-        if (commissionTotal && summary.commission !== undefined) {
-            commissionTotal.textContent = '₦' + parseFloat(summary.commission).toFixed(2);
-        }
-        if (tipsTotal && summary.tips !== undefined) {
-            tipsTotal.textContent = '₦' + parseFloat(summary.tips).toFixed(2);
-        }
+        if (!data.data || !data.data.todaySummary) return;
+
+        // Backend returns todaySummary/weekSummary/monthSummary (same shape
+        // as the Admin dashboard's response) — this used to look for a
+        // single "summary" key that never existed, so it silently did
+        // nothing. Also updates all three periods now, not just one.
+        var periods = [
+            { key: 'todaySummary', prefix: 'today' },
+            { key: 'weekSummary', prefix: 'week' },
+            { key: 'monthSummary', prefix: 'month' }
+        ];
+
+        periods.forEach(function (period) {
+            var summary = data.data[period.key];
+            if (!summary) return;
+
+            var salesEl = document.getElementById(period.prefix + 'Sales');
+            var revenueEl = document.getElementById(period.prefix + 'Revenue');
+            var commissionEl = document.getElementById(period.prefix + 'Commission');
+            var tipsEl = document.getElementById(period.prefix + 'Tips');
+
+            if (salesEl && summary.record_count !== undefined) {
+                salesEl.textContent = summary.record_count || 0;
+            }
+            if (revenueEl && summary.revenue !== undefined) {
+                revenueEl.textContent = '₦' + parseFloat(summary.revenue).toFixed(2);
+            }
+            if (commissionEl && summary.commission !== undefined) {
+                commissionEl.textContent = '₦' + parseFloat(summary.commission).toFixed(2);
+            }
+            if (tipsEl && summary.tips !== undefined) {
+                tipsEl.textContent = '₦' + parseFloat(summary.tips).toFixed(2);
+            }
+        });
     }
     
     // Update the last updated text every 60 seconds
@@ -417,7 +461,6 @@ document.addEventListener('DOMContentLoaded', function () {
     
     // Check for updates every 5 seconds
     setInterval(checkForUpdates, 5000);
-    console.log('Heartbeat running. Checking every 5 seconds.');
     
     // Also check when the page becomes visible again
     document.addEventListener('visibilitychange', function() {

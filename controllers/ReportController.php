@@ -69,7 +69,7 @@ class ReportController
         $branchBreakdown = $branchId === null ? ReportModel::branchBreakdown($range['start'], $range['end']) : null;
         $workerPerformance = ReportModel::workerPerformance($range['start'], $range['end'], $branchId);
 
-        $pdf = $this->buildPdf($business, $branchName, $range, $summary, $branchBreakdown, $workerPerformance);
+        $pdf = self::buildPdf($business, $branchName, $range, $summary, $branchBreakdown, $workerPerformance);
 
         AuditLog::record('export_pdf', "Exported {$range['label']} report ({$branchName}, {$range['start']} to {$range['end']})");
 
@@ -77,8 +77,14 @@ class ReportController
         $pdf->streamDownload($filename);
     }
 
-    /** Lays out the title, summary, and tables onto PDF pages. */
-    private function buildPdf(array $business, string $branchName, array $range, array $summary, ?array $branchBreakdown, array $workerPerformance): SimplePdf
+    /**
+     * Lays out the title, summary, and tables onto PDF pages.
+     * Public + static so CashierController::exportPdf() can reuse this
+     * exact same layout logic for a branch-scoped report instead of
+     * duplicating it — a cashier's PDF is just this same method called
+     * with $branchBreakdown always null (one branch, no breakdown needed).
+     */
+    public static function buildPdf(array $business, string $branchName, array $range, array $summary, ?array $branchBreakdown, array $workerPerformance): SimplePdf
     {
         $pdf = new SimplePdf();
         $pdf->addPage();
@@ -96,12 +102,15 @@ class ReportController
         $pdf->line(40, $y, 555, $y);
         $y += 16;
 
+        $revenuePlusTips = (float) $summary['total_revenue'] + (float) $summary['tips_total'];
+
         $summaryRows = [
             ['Total Revenue', $summary['total_revenue']],
             ['Cash Total', $summary['cash_total']],
             ['Transfer Total', $summary['transfer_total']],
             ['POS Total', $summary['pos_total']],
             ['Tips', $summary['tips_total']],
+            ['Total Revenue + Tips', $revenuePlusTips],
             ['Worker Commissions', $summary['worker_commissions']],
             ['Salon Earnings', $summary['salon_earnings']],
             ['Number of Sales', (string) $summary['record_count']],
@@ -109,7 +118,7 @@ class ReportController
 
         foreach ($summaryRows as $row) {
             [$label, $value] = $row;
-            $formatted = $label === 'Number of Sales' ? $value : $this->money($value);
+            $formatted = $label === 'Number of Sales' ? $value : self::money($value);
             $pdf->text(40, $y, $label, 10);
             $pdf->text(300, $y, $formatted, 10);
             $y += 16;
@@ -118,14 +127,14 @@ class ReportController
         $y += 12;
 
         if ($branchBreakdown !== null) {
-            $y = $this->tableSection($pdf, $y, 'Branch Revenue', ['Branch', 'Sales', 'Revenue', 'Commissions', 'Salon Earnings'], [40, 220, 300, 390, 480],
-                array_map(fn($r) => [$r['name'], (string) $r['record_count'], $this->money($r['revenue']), $this->money($r['worker_commissions']), $this->money($r['salon_earnings'])], $branchBreakdown)
+            $y = self::tableSection($pdf, $y, 'Branch Revenue', ['Branch', 'Sales', 'Revenue', 'Commissions', 'Salon Earnings'], [40, 220, 300, 390, 480],
+                array_map(fn($r) => [$r['name'], (string) $r['record_count'], self::money($r['revenue']), self::money($r['worker_commissions']), self::money($r['salon_earnings'])], $branchBreakdown)
             );
             $y += 12;
         }
 
-        $y = $this->tableSection($pdf, $y, 'Worker Performance', ['Worker', 'Branch', 'Sales', 'Revenue', 'Commission', 'Tips'], [40, 150, 230, 290, 380, 470],
-            array_map(fn($r) => [$r['full_name'], $r['branch_name'], (string) $r['record_count'], $this->money($r['revenue']), $this->money($r['commission']), $this->money($r['tips'])], $workerPerformance)
+        $y = self::tableSection($pdf, $y, 'Worker Performance', ['Worker', 'Branch', 'Sales', 'Revenue', 'Commission', 'Tips'], [40, 150, 230, 290, 380, 470],
+            array_map(fn($r) => [$r['full_name'], $r['branch_name'], (string) $r['record_count'], self::money($r['revenue']), self::money($r['commission']), self::money($r['tips'])], $workerPerformance)
         );
 
         return $pdf;
@@ -137,7 +146,7 @@ class ReportController
      * Returns the Y position after the table so the caller can keep stacking
      * more sections beneath it.
      */
-    private function tableSection(SimplePdf $pdf, float $y, string $title, array $columns, array $xPositions, array $rows): float
+    private static function tableSection(SimplePdf $pdf, float $y, string $title, array $columns, array $xPositions, array $rows): float
     {
         $bottomMargin = 780;
 
@@ -187,7 +196,7 @@ class ReportController
     }
 
     /** Formats a number as "NGN 1,234.56" — see SimplePdf's docblock for why not "₦". */
-    private function money($value): string
+    private static function money($value): string
     {
         return 'NGN ' . number_format((float) $value, 2);
     }

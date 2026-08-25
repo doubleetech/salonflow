@@ -1,21 +1,14 @@
 <?php
 $selectedPeriod = $_GET['period'] ?? 'daily';
 
-// Helper function to convert Y-m-d to d-m-Y for display
-function formatDateForDisplay($date) {
-    if (empty($date) || $date === '0000-00-00') return '';
-    $timestamp = strtotime($date);
-    return $timestamp ? date('d-m-Y', $timestamp) : $date;
-}
-
 $selectedDate = $_GET['date'] ?? date('Y-m-d');
 $selectedStart = $_GET['start'] ?? date('Y-m-d');
 $selectedEnd = $_GET['end'] ?? date('Y-m-d');
 
 // Format dates for display in DD-MM-YYYY
-$displayDate = formatDateForDisplay($selectedDate);
-$displayStart = formatDateForDisplay($selectedStart);
-$displayEnd = formatDateForDisplay($selectedEnd);
+$displayDate = DateRange::formatForDisplay($selectedDate);
+$displayStart = DateRange::formatForDisplay($selectedStart);
+$displayEnd = DateRange::formatForDisplay($selectedEnd);
 ?>
 <div class="app-shell">
     <header class="topbar">

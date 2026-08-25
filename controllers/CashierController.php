@@ -368,7 +368,7 @@ class CashierController
 
         $summary = null;
         $workerPerformance = null;
-        $error = $rangeError;
+        $error = $rangeError ?: Session::flash('report_error');
 
         if (!$rangeError) {
             $summary = ReportModel::summary($branchId, $range['start'], $range['end']);
@@ -378,6 +378,41 @@ class CashierController
         require __DIR__ . '/../views/layouts/header.php';
         require __DIR__ . '/../views/cashier/reports.php';
         require __DIR__ . '/../views/layouts/footer.php';
+    }
+
+    /**
+     * PDF export for the cashier's own branch report — reuses
+     * ReportController::buildPdf(), the exact same layout Admin's export
+     * uses, just always with $branchBreakdown = null since a cashier is
+     * only ever looking at one branch (no "breakdown by branch" makes
+     * sense when there's only one branch to show).
+     */
+    public function exportPdf(): void
+    {
+        Auth::requireCashier();
+        $branchId = $this->currentBranchId();
+
+        [$range, $rangeError] = DateRange::resolve($_GET);
+
+        if ($rangeError) {
+            Session::flash('report_error', $rangeError);
+            header('Location: ' . APP_URL . '/index.php?route=cashier/reports');
+            exit;
+        }
+
+        $business = BusinessModel::get();
+        $branch = BranchModel::find($branchId);
+        $branchName = $branch ? $branch['name'] : 'Unknown Branch';
+
+        $summary = ReportModel::summary($branchId, $range['start'], $range['end']);
+        $workerPerformance = ReportModel::workerPerformance($range['start'], $range['end'], $branchId);
+
+        $pdf = ReportController::buildPdf($business, $branchName, $range, $summary, null, $workerPerformance);
+
+        AuditLog::record('export_pdf', "Exported {$range['label']} report ({$branchName}, {$range['start']} to {$range['end']})");
+
+        $filename = 'salonflow-report-' . $range['start'] . '-to-' . $range['end'] . '.pdf';
+        $pdf->streamDownload($filename);
     }
 
     private function redirectIfMustChangePassword(): void
