@@ -2,6 +2,7 @@
 
 /**
  * ErrorHandler
+ 
  */
 class ErrorHandler
 {
@@ -48,6 +49,22 @@ class ErrorHandler
         
         // Get HTTP status code
         $statusCode = $exception->getCode() ?: 500;
+        
+        // Handle login errors gracefully - redirect back with error message
+        if ($exception instanceof TypeError && strpos($exception->getMessage(), 'verifyAndLogin') !== false) {
+            Session::flash('login_error', 'Incorrect email or password.');
+            header('Location: ' . APP_URL . '/index.php?route=admin-login');
+            exit;
+        }
+        
+        // For login failures
+        if (strpos($exception->getMessage(), 'Invalid credentials') !== false ||
+            strpos($exception->getMessage(), 'Incorrect email') !== false ||
+            strpos($exception->getMessage(), 'Incorrect username') !== false ||
+            strpos($exception->getMessage(), 'login') !== false) {
+            $statusCode = 401;
+        }
+        
         if ($statusCode < 400 || $statusCode > 599) {
             $statusCode = 500;
         }
@@ -62,6 +79,13 @@ class ErrorHandler
                 'error' => self::getUserFriendlyMessage($exception, $statusCode),
                 'code' => $statusCode
             ]);
+            exit;
+        }
+        
+        // For login errors, redirect back with error message instead of showing error page
+        if ($statusCode === 401 || strpos($exception->getMessage(), 'login') !== false) {
+            Session::flash('login_error', 'Incorrect email or password.');
+            header('Location: ' . APP_URL . '/index.php?route=admin-login');
             exit;
         }
         
@@ -150,6 +174,11 @@ class ErrorHandler
         // Database specific messages
         if ($exception instanceof PDOException) {
             return 'A database error occurred. Please try again later.';
+        }
+        
+        // Login specific messages
+        if ($statusCode === 401 || strpos($exception->getMessage(), 'login') !== false) {
+            return 'Incorrect email or password. Please try again.';
         }
         
         return $messages[$statusCode] ?? 'An unexpected error occurred. Please try again later.';

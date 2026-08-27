@@ -17,6 +17,11 @@ class Auth
         );
         $stmt->execute(['email' => $email]);
         $user = $stmt->fetch();
+        
+        // Convert false to null
+        if ($user === false) {
+            $user = null;
+        }
 
         return self::verifyAndLogin($user, $password);
     }
@@ -30,6 +35,11 @@ class Auth
         );
         $stmt->execute(['username' => $username]);
         $user = $stmt->fetch();
+        
+        // Convert false to null
+        if ($user === false) {
+            $user = null;
+        }
 
         return self::verifyAndLogin($user, $password);
     }
@@ -43,6 +53,11 @@ class Auth
         );
         $stmt->execute(['username' => $username]);
         $user = $stmt->fetch();
+        
+        // Convert false to null
+        if ($user === false) {
+            $user = null;
+        }
 
         return self::verifyAndLogin($user, $password);
     }
