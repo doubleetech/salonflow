@@ -18,6 +18,9 @@ define('APP_ENV', 'development');    // 'development' | 'production'
 define('APP_URL', 'http://localhost/salonflow/public');
 define('APP_TIMEZONE', 'Africa/Lagos');
 
+// Environment: 'development' or 'production'
+define('ENV', 'development'); // Will Change to 'production' when live
+
 // --- Asset cache-busting ---
 // Bump this any time style.css or app.js changes. Browsers cache static
 // files aggressively; without a changing version tag on the URL, a user's
