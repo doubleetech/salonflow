@@ -24,19 +24,58 @@ class Router
 
     public function dispatch(): void
     {
-        $method = $_SERVER['REQUEST_METHOD'];
-        $route  = $_GET['route'] ?? 'who-are-you';
+        try {
+            $method = $_SERVER['REQUEST_METHOD'];
+            $route  = $_GET['route'] ?? 'who-are-you';
 
-        $handler = $this->routes[$method][$route] ?? null;
+            $handler = $this->routes[$method][$route] ?? null;
 
-        if (!$handler) {
-            http_response_code(404);
-            echo "404 - Route not found: " . htmlspecialchars($route, ENT_QUOTES, 'UTF-8');
-            return;
+            if (!$handler) {
+                http_response_code(404);
+                
+                // Check if it's an AJAX request
+                $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) 
+                    && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+                
+                if ($isAjax) {
+                    header('Content-Type: application/json');
+                    echo json_encode([
+                        'success' => false,
+                        'error' => 'Route not found: ' . $route,
+                        'code' => 404
+                    ]);
+                    exit;
+                }
+                
+                // Load 404 error page
+                $errorView = __DIR__ . '/../views/errors/404.php';
+                if (file_exists($errorView)) {
+                    require $errorView;
+                } else {
+                    echo "404 - Route not found: " . htmlspecialchars($route, ENT_QUOTES, 'UTF-8');
+                }
+                return;
+            }
+
+            [$controllerClass, $action] = $handler;
+            
+            // Check if controller class exists
+            if (!class_exists($controllerClass)) {
+                throw new Exception("Controller '$controllerClass' not found");
+            }
+            
+            $controller = new $controllerClass();
+            
+            // Check if method exists
+            if (!method_exists($controller, $action)) {
+                throw new Exception("Method '$action' not found in controller '$controllerClass'");
+            }
+            
+            $controller->$action();
+            
+        } catch (Exception $e) {
+            // Let the ErrorHandler handle it
+            throw $e;
         }
-
-        [$controllerClass, $action] = $handler;
-        $controller = new $controllerClass();
-        $controller->$action();
     }
 }

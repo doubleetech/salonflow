@@ -9,6 +9,10 @@
 
 require_once __DIR__ . '/../config/config.php';
 
+// Register error handler FIRST (before anything else)
+require_once __DIR__ . '/ErrorHandler.php';
+ErrorHandler::register();
+
 spl_autoload_register(function ($class) {
     $paths = [
         __DIR__ . '/../core/',

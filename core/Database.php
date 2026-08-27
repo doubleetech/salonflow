@@ -21,10 +21,9 @@ class Database
                     PDO::ATTR_EMULATE_PREPARES    => false,
                 ]);
             } catch (PDOException $e) {
-                // Never leak DB credentials or raw exception details to the browser
+                // Log the error and re-throw for the ErrorHandler to handle
                 error_log('Database connection failed: ' . $e->getMessage());
-                http_response_code(500);
-                die('A system error occurred. Please try again later.');
+                throw new PDOException('Database connection failed. Please try again later.');
             }
         }
 
