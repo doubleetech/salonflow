@@ -77,6 +77,15 @@ $router->get('admin/reports/export', ['ReportController', 'exportPdf']);
 $router->get('admin/closures', ['ClosureController', 'reopenForm']);
 $router->post('admin/closures/reopen', ['ClosureController', 'reopenSubmit']);
 
+// --- Admin signup routes (one-time) ---
+$router->get('admin-signup', ['AdminSignupController', 'showForm']);
+$router->post('admin-signup/submit', ['AdminSignupController', 'submit']);
+
+// Only add this in development mode
+if (defined('ENV') && ENV === 'development') {
+    $router->get('admin-signup/reset', ['AdminSignupController', 'reset']);
+}
+
 // Audit log viewer — Admin-only, read-only.
 $router->get('admin/audit-log', ['AuditLogController', 'index']);
 

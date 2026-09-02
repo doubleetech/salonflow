@@ -474,3 +474,85 @@ document.addEventListener('DOMContentLoaded', function () {
         checkForUpdates();
     }, 1000);
 });
+
+// Phase 8: Hamburger Menu - Mobile Navigation
+document.addEventListener('DOMContentLoaded', function () {
+    const navToggle = document.getElementById('navToggle');
+    const navMenu = document.getElementById('navMenu');
+    const navClose = document.getElementById('navClose');
+    
+    // Don't run if no toggle exists
+    if (!navToggle || !navMenu) return;
+    
+    // Create overlay
+    const overlay = document.createElement('div');
+    overlay.className = 'nav-overlay';
+    document.body.appendChild(overlay);
+    
+    // Toggle menu (for hamburger click)
+    function toggleMenu() {
+        navToggle.classList.toggle('active');
+        navMenu.classList.toggle('open');
+        overlay.classList.toggle('active');
+        document.body.style.overflow = navMenu.classList.contains('open') ? 'hidden' : '';
+    }
+    
+    // Close menu
+    function closeMenu() {
+        navToggle.classList.remove('active');
+        navMenu.classList.remove('open');
+        overlay.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+    
+    // Hamburger click
+    navToggle.addEventListener('click', toggleMenu);
+    
+    // Close button click (inside sidebar)
+    if (navClose) {
+        navClose.addEventListener('click', closeMenu);
+        
+        // Keyboard support for close button
+        navClose.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                closeMenu();
+            }
+        });
+    }
+    
+    // Keyboard support for hamburger
+    navToggle.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            toggleMenu();
+        }
+    });
+    
+    // Close on overlay click
+    overlay.addEventListener('click', closeMenu);
+    
+    // Close on Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && navMenu.classList.contains('open')) {
+            closeMenu();
+        }
+    });
+    
+    // Close on link click (mobile only)
+    const navLinks = navMenu.querySelectorAll('.admin-nav__link, .cashier-nav__link, .worker-nav__link');
+    navLinks.forEach(link => {
+        link.addEventListener('click', function() {
+            if (window.innerWidth <= 768) {
+                closeMenu();
+            }
+        });
+    });
+    
+    // Close on window resize to desktop
+    window.addEventListener('resize', function() {
+        if (window.innerWidth > 768 && navMenu.classList.contains('open')) {
+            closeMenu();
+        }
+    });
+});

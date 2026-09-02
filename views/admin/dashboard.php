@@ -1,11 +1,20 @@
 <div class="app-shell">
-    <header class="topbar">
-        <div class="topbar__brand"><?php echo APP_NAME; ?> · Admin</div>
-        <div class="topbar__user">
-            <span><?php echo htmlspecialchars(Session::get('user_name')); ?></span>
-            <a class="link-muted" href="<?php echo APP_URL; ?>/index.php?route=logout">Log Out</a>
+  <header class="topbar">
+    <div class="topbar__left">
+        <div class="nav-toggle" id="navToggle" aria-label="Toggle navigation" role="button" tabindex="0">
+            <span class="nav-toggle__bar"></span>
+            <span class="nav-toggle__bar"></span>
+            <span class="nav-toggle__bar"></span>
         </div>
-    </header>
+        <div class="topbar__brand"><?php echo APP_NAME; ?> · Admin</div>
+    </div>
+        <div class="topbar__user">
+            <span><i class="fas fa-user-circle"></i> <?php echo htmlspecialchars(Session::get('user_name')); ?></span>
+            <a class="link-muted" href="<?php echo APP_URL; ?>/index.php?route=logout">
+                <i class="fas fa-sign-out-alt"></i> Log Out
+            </a>
+        </div>
+   </header>
 
     <?php require __DIR__ . '/../layouts/admin-nav.php'; ?>
 
@@ -19,11 +28,7 @@
             </div>
         </div>
 
-        <div class="notice">
-            <strong>Phase 4 of 5 complete.</strong> Real numbers, reports, and PDF export
-            are all live. Business-day closures and the audit log viewer arrive in Phase 5.
-        </div>
-
+        
         <h2 class="section-heading">Revenue Trend</h2>
         <div class="card-grid" id="revenueCards">
             <div class="stat-card"><span class="stat-card__label">Today's Revenue</span><span class="stat-card__value" id="todayRevenue">₦<?php echo number_format((float) $todaySummary['total_revenue'], 2); ?></span></div>

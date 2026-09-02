@@ -23,6 +23,13 @@ class AuthController
             return;
         }
 
+        // Check if any admin exists - if not, redirect to signup
+        if (!$this->adminExists()) {
+            // No admin exists - redirect to signup
+            header('Location: ' . APP_URL . '/index.php?route=admin-signup');
+            exit;
+        }
+
         $pageTitle = 'Admin Login';
         $error = Session::flash('login_error');
         require __DIR__ . '/../views/layouts/header.php';
@@ -319,6 +326,22 @@ class AuthController
 
         header('Location: ' . APP_URL . '/index.php?route=admin-login');
         exit;
+    }
+
+    /**
+     * Check if any admin exists in the database
+     */
+    private function adminExists(): bool
+    {
+        try {
+            $db = Database::connect();
+            $stmt = $db->prepare("SELECT id FROM users WHERE role = 'admin' LIMIT 1");
+            $stmt->execute();
+            return (bool) $stmt->fetch();
+        } catch (PDOException $e) {
+            // If table doesn't exist yet, no admin exists
+            return false;
+        }
     }
 
     private function redirectToDashboard(): void

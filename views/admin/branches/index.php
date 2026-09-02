@@ -1,11 +1,20 @@
 <div class="app-shell">
-    <header class="topbar">
-        <div class="topbar__brand"><?php echo APP_NAME; ?> · Admin</div>
-        <div class="topbar__user">
-            <span><?php echo htmlspecialchars(Session::get('user_name')); ?></span>
-            <a class="link-muted" href="<?php echo APP_URL; ?>/index.php?route=logout">Log Out</a>
+   <header class="topbar">
+    <div class="topbar__left">
+        <div class="nav-toggle" id="navToggle" aria-label="Toggle navigation" role="button" tabindex="0">
+            <span class="nav-toggle__bar"></span>
+            <span class="nav-toggle__bar"></span>
+            <span class="nav-toggle__bar"></span>
         </div>
-    </header>
+        <div class="topbar__brand"><?php echo APP_NAME; ?> · Admin</div>
+    </div>
+    <div class="topbar__user">
+        <span><i class="fas fa-user-circle"></i> <?php echo htmlspecialchars(Session::get('user_name')); ?></span>
+        <a class="link-muted" href="<?php echo APP_URL; ?>/index.php?route=logout">
+            <i class="fas fa-sign-out-alt"></i> Log Out
+        </a>
+    </div>
+</header>
 
     <?php require __DIR__ . '/../../layouts/admin-nav.php'; ?>
 
