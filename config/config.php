@@ -7,13 +7,13 @@
 // --- Database ---
 define('DB_HOST', '127.0.0.1');
 define('DB_PORT', '3307');           // your MariaDB is on 3307, not the default 3306
-define('DB_NAME', 'NowBaberShop');
+define('DB_NAME', 'salonflow');
 define('DB_USER', 'root');
 define('DB_PASS', '');
 define('DB_CHARSET', 'utf8mb4');
 
 // --- App ---
-define('APP_NAME', 'SalonFlow');
+define('APP_NAME', 'NowBaberShop');
 define('APP_ENV', 'development');    // 'development' | 'production'
 define('APP_URL', 'http://localhost/salonflow/public');
 define('APP_TIMEZONE', 'Africa/Lagos');
