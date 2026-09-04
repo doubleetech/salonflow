@@ -7,7 +7,7 @@
 // --- Database ---
 define('DB_HOST', '127.0.0.1');
 define('DB_PORT', '3307');           // your MariaDB is on 3307, not the default 3306
-define('DB_NAME', 'salonflow');
+define('DB_NAME', 'NowBaberShop');
 define('DB_USER', 'root');
 define('DB_PASS', '');
 define('DB_CHARSET', 'utf8mb4');
