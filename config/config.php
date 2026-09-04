@@ -13,7 +13,7 @@ define('DB_PASS', '');
 define('DB_CHARSET', 'utf8mb4');
 
 // --- App ---
-define('APP_NAME', 'NowBaberShop');
+define('APP_NAME', 'Now Barbershop');
 define('APP_ENV', 'development');    // 'development' | 'production'
 define('APP_URL', 'http://localhost/salonflow/public');
 define('APP_TIMEZONE', 'Africa/Lagos');

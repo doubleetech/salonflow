@@ -19,7 +19,7 @@
     <?php require __DIR__ . '/../../layouts/admin-nav.php'; ?>
 
     <main class="content content--narrow">
-        <h1><?php echo $worker ? 'Edit Worker' : 'Add Worker'; ?></h1>
+        <h1><?php echo $worker ? 'Edit Staff' : 'Add Staff'; ?></h1>
 
         <?php if (!empty($error)): ?>
             <div class="alert alert--error"><?php echo htmlspecialchars($error); ?></div>
@@ -27,7 +27,7 @@
 
         <?php if (empty($branches)): ?>
             <div class="alert alert--error">
-                You need at least one active branch before adding workers.
+                You need at least one active branch before adding staff.
                 <a href="<?php echo APP_URL; ?>/index.php?route=admin/branches/create">Add a branch first</a>.
             </div>
         <?php else: ?>
@@ -46,7 +46,7 @@
             <?php if (!$worker): ?>
                 <label for="username">Username (optional)</label>
                 <input type="text" id="username" name="username">
-                <p class="field-hint">Leave blank if this worker doesn't need their own login. You can enable it later from the Workers list.</p>
+                <p class="field-hint">Leave blank if this staff member doesn't need their own login. You can enable it later from the Staff list.</p>
             <?php endif; ?>
 
             <label for="branch_id">Assigned Branch</label>
@@ -73,10 +73,10 @@
             <label for="notes">Notes</label>
             <textarea id="notes" name="notes" rows="3"><?php echo htmlspecialchars($worker['notes'] ?? ''); ?></textarea>
 
-            <button type="submit" class="btn btn--primary"><?php echo $worker ? 'Save Changes' : 'Add Worker'; ?></button>
+            <button type="submit" class="btn btn--primary"><?php echo $worker ? 'Save Changes' : 'Add Staff'; ?></button>
         </form>
         <?php endif; ?>
 
-        <a class="link-back" href="<?php echo APP_URL; ?>/index.php?route=admin/workers">&larr; Back to Workers</a>
+        <a class="link-back" href="<?php echo APP_URL; ?>/index.php?route=admin/workers">&larr; Back to Staff</a>
     </main>
 </div>

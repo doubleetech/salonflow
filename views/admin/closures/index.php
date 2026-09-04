@@ -49,7 +49,7 @@
             </div>
 
             <label for="reason">Reason for Reopening</label>
-            <textarea id="reason" name="reason" rows="2" required placeholder="e.g. Cashier recorded a sale under the wrong worker"></textarea>
+            <textarea id="reason" name="reason" rows="2" required placeholder="e.g. Cashier recorded a sale under the wrong staff member"></textarea>
 
             <button type="submit" class="btn btn--primary">Reopen This Day</button>
             <p class="field-hint">The cashier at that branch will then be able to edit that day's records and close it again when done.</p>

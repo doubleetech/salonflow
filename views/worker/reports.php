@@ -18,7 +18,7 @@ $displayEnd = DateRange::formatForDisplay($selectedEnd);
             <span class="nav-toggle__bar"></span>
             <span class="nav-toggle__bar"></span>
         </div>
-        <div class="topbar__brand"><?php echo APP_NAME; ?> · Worker</div>
+        <div class="topbar__brand"><?php echo APP_NAME; ?> · Staff</div>
     </div>
    <div class="topbar__user">
     <span><i class="fas fa-user-cog"></i> <?php echo htmlspecialchars(Session::get('user_name')); ?></span>

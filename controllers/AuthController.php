@@ -98,7 +98,7 @@ class AuthController
             return;
         }
 
-        $pageTitle = 'Worker Login';
+        $pageTitle = 'Staff Login';
         $error = Session::flash('login_error');
         require __DIR__ . '/../views/layouts/header.php';
         require __DIR__ . '/../views/auth/worker-login.php';

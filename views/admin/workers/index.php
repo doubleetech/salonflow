@@ -20,8 +20,8 @@
 
     <main class="content">
         <div class="content-header">
-            <h1>Workers</h1>
-            <a class="btn btn--primary btn--small" href="<?php echo APP_URL; ?>/index.php?route=admin/workers/create">+ Add Worker</a>
+            <h1>Staff</h1>
+            <a class="btn btn--primary btn--small" href="<?php echo APP_URL; ?>/index.php?route=admin/workers/create">+ Add Staff</a>
         </div>
 
         <?php if (!empty($success)): ?>
@@ -52,7 +52,7 @@
             </thead>
             <tbody>
                 <?php if (empty($workers)): ?>
-                    <tr><td colspan="7" class="empty-row">No workers yet. Add your first one above.</td></tr>
+                    <tr><td colspan="7" class="empty-row">No staff yet. Add your first one above.</td></tr>
                 <?php endif; ?>
                 <?php foreach ($workers as $worker): ?>
                 <tr>

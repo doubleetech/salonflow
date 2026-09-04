@@ -98,9 +98,9 @@ $displayEnd = DateRange::formatForDisplay($selectedEnd);
             <div class="stat-card"><span class="stat-card__label">Number of Sales</span><span class="stat-card__value"><?php echo (int) $summary['record_count']; ?></span></div>
         </div>
 
-        <h2 class="section-heading">Worker Performance</h2>
+        <h2 class="section-heading">Staff Performance</h2>
         <table class="data-table">
-            <thead><tr><th>Worker</th><th>Sales</th><th>Revenue</th><th>Commission</th><th>Tips</th></tr></thead>
+            <thead><tr><th>Staff</th><th>Sales</th><th>Revenue</th><th>Commission</th><th>Tips</th></tr></thead>
             <tbody>
                 <?php if (empty($workerPerformance)): ?>
                     <tr><td colspan="5" class="empty-row">No data for this period.</td></tr>

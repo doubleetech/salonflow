@@ -1,6 +1,6 @@
 <div class="auth-screen">
     <div class="auth-card">
-        <h2>Worker Login</h2>
+        <h2>Staff Login</h2>
 
         <?php if (!empty($error)): ?>
             <div class="alert alert--error"><?php echo htmlspecialchars($error); ?></div>

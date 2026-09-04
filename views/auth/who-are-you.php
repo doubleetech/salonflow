@@ -17,8 +17,8 @@
                 <span class="role-btn__label">Cashier</span>
             </a>
             <a class="role-btn" href="<?php echo APP_URL; ?>/index.php?route=worker-login">
-                <span class="role-btn__icon">W</span>
-                <span class="role-btn__label">Worker</span>
+                <span class="role-btn__icon">S</span>
+                <span class="role-btn__label">Staff</span>
             </a>
         </div>
     </div>

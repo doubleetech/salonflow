@@ -3,12 +3,12 @@
 /**
  * AdminWorkerController
  * Not to be confused with WorkerPortalController — that one is the
- * worker's OWN dashboard/reports. This one is the admin-side screen for
- * managing worker profiles (add/edit/suspend, and — new — granting login access).
+ * staff's OWN dashboard/reports. This one is the admin-side screen for
+ * managing staff profiles (add/edit/suspend, and — new — granting login access).
  *
- * Login access is OPTIONAL per worker: leaving the username blank at
- * creation keeps the original spec's default ("workers don't log in").
- * Admin can grant it later via the "Enable Login" action for any worker
+ * Login access is OPTIONAL per staff: leaving the username blank at
+ * creation keeps the original spec's default ("staff don't log in").
+ * Admin can grant it later via the "Enable Login" action for any staff
  * who doesn't have one yet.
  */
 class AdminWorkerController
@@ -17,7 +17,7 @@ class AdminWorkerController
     {
         Auth::requireAdmin();
 
-        $pageTitle = 'Workers';
+        $pageTitle = 'Staff';
         $workers = WorkerModel::allWithBranch();
         $success = Session::flash('worker_success');
         $tempPassword = Session::flash('worker_temp_password'); // shown once, right after enabling/resetting login
@@ -31,7 +31,7 @@ class AdminWorkerController
     {
         Auth::requireAdmin();
 
-        $pageTitle = 'Add Worker';
+        $pageTitle = 'Add Staff';
         $worker = null; // null = create mode for the shared form view
         $branches = BranchModel::allActive();
         $error = Session::flash('worker_error');
@@ -73,10 +73,10 @@ class AdminWorkerController
             $data['specialty'], $data['employment_date'], $data['notes'], $userId
         );
 
-        AuditLog::record('create_worker', "Created worker: {$data['full_name']}" . ($userId ? " (with login access)" : ''));
+        AuditLog::record('create_worker', "Created staff: {$data['full_name']}" . ($userId ? " (with login access)" : ''));
         Session::flash('worker_success', $tempPassword
-            ? "Worker added with login access. Share this temporary password with {$data['full_name']} — it won't be shown again."
-            : 'Worker added.');
+            ? "Staff added with login access. Share this temporary password with {$data['full_name']} — it won't be shown again."
+            : 'Staff added.');
         if ($tempPassword) {
             Session::flash('worker_temp_password', $tempPassword);
         }
@@ -97,7 +97,7 @@ class AdminWorkerController
             exit;
         }
 
-        $pageTitle = 'Edit Worker';
+        $pageTitle = 'Edit Staff';
         $branches = BranchModel::allActive();
         $error = Session::flash('worker_error');
 
@@ -128,8 +128,8 @@ class AdminWorkerController
             $data['specialty'], $data['employment_date'], $data['notes']
         );
 
-        AuditLog::record('edit_worker', "Edited worker #{$id}: {$data['full_name']} (commission now {$data['commission']}%)");
-        Session::flash('worker_success', 'Worker updated.');
+        AuditLog::record('edit_worker', "Edited staff #{$id}: {$data['full_name']} (commission now {$data['commission']}%)");
+        Session::flash('worker_success', 'Staff updated.');
 
         header('Location: ' . APP_URL . '/index.php?route=admin/workers');
         exit;
@@ -146,15 +146,15 @@ class AdminWorkerController
         if ($worker) {
             $newStatus = $worker['status'] === 'active' ? 'suspended' : 'active';
             WorkerModel::setStatus($id, $newStatus);
-            AuditLog::record('edit_worker', "Set worker #{$id} ({$worker['full_name']}) status to {$newStatus}");
-            Session::flash('worker_success', 'Worker status updated.');
+            AuditLog::record('edit_worker', "Set staff #{$id} ({$worker['full_name']}) status to {$newStatus}");
+            Session::flash('worker_success', 'Staff status updated.');
         }
 
         header('Location: ' . APP_URL . '/index.php?route=admin/workers');
         exit;
     }
 
-    /** Grants login access to a worker who was created before this feature existed (or opted out at the time). */
+    /** Grants login access to a staff who was created before this feature existed (or opted out at the time). */
     public function enableLogin(): void
     {
         Auth::requireAdmin();
@@ -169,7 +169,7 @@ class AdminWorkerController
             exit;
         }
         if ($worker['user_id']) {
-            Session::flash('worker_error', 'This worker already has login access.');
+            Session::flash('worker_error', 'This staff already has login access.');
             header('Location: ' . APP_URL . '/index.php?route=admin/workers');
             exit;
         }
@@ -187,7 +187,7 @@ class AdminWorkerController
         $result = UserModel::createWorkerAccount($worker['full_name'], $username);
         WorkerModel::linkUserAccount($id, $result['id']);
 
-        AuditLog::record('create_user', "Enabled login access for worker #{$id} ({$worker['full_name']}): {$username}");
+        AuditLog::record('create_user', "Enabled login access for staff #{$id} ({$worker['full_name']}): {$username}");
         Session::flash('worker_success', "Login access enabled for {$worker['full_name']}. Share this temporary password — it won't be shown again.");
         Session::flash('worker_temp_password', $result['temp_password']);
 
@@ -195,7 +195,7 @@ class AdminWorkerController
         exit;
     }
 
-    /** Resets a worker's login password — same idea as AdminCashierController::resetPassword(). */
+    /** Resets a staff's login password — same idea as AdminCashierController::resetPassword(). */
     public function resetPassword(): void
     {
         Auth::requireAdmin();
@@ -206,7 +206,7 @@ class AdminWorkerController
 
         if ($worker && $worker['user_id']) {
             $tempPassword = UserModel::resetToTempPassword((int) $worker['user_id']);
-            AuditLog::record('password_reset', "Admin reset login password for worker #{$id} ({$worker['full_name']})");
+            AuditLog::record('password_reset', "Admin reset login password for staff #{$id} ({$worker['full_name']})");
             Session::flash('worker_success', "Password reset for {$worker['full_name']}. Share the new temporary password below — it won't be shown again.");
             Session::flash('worker_temp_password', $tempPassword);
         }

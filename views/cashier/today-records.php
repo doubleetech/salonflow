@@ -97,7 +97,7 @@ $canRecordHere = ($isToday || $isYesterday) && !$isClosed;
             <thead>
                 <tr>
                     <th>Time</th>
-                    <th>Worker</th>
+                    <th>Staff</th>
                     <th>Amount</th>
                     <th>Method</th>
                     <th>Tip</th>

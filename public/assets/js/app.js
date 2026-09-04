@@ -270,7 +270,7 @@ document.addEventListener('DOMContentLoaded', function () {
         } else if (currentRoute === 'cashier/dashboard') {
             updateCashierDashboard(data);
         } else if (currentRoute === 'worker/dashboard') {
-            updateWorkerDashboard(data);
+            updateStaffDashboard(data);
         }
         
         // Flash animation for any stat cards on the page
@@ -416,8 +416,8 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
     
-    // Update worker dashboard
-    function updateWorkerDashboard(data) {
+    // Update staff dashboard
+    function updateStaffDashboard(data) {
         if (!data.data || !data.data.todaySummary) return;
 
         // Backend returns todaySummary/weekSummary/monthSummary (same shape

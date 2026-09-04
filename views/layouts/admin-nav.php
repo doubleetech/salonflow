@@ -20,7 +20,7 @@ function navClass($route, $current) {
             <i class="fas fa-store"></i> Branches
         </a>
         <a class="<?php echo navClass('admin/workers', $currentRoute); ?>" href="<?php echo APP_URL; ?>/index.php?route=admin/workers">
-            <i class="fas fa-users"></i> Workers
+            <i class="fas fa-users"></i> Staffs
         </a>
         <a class="<?php echo navClass('admin/cashiers', $currentRoute); ?>" href="<?php echo APP_URL; ?>/index.php?route=admin/cashiers">
             <i class="fas fa-user-tie"></i> Cashiers

@@ -2,12 +2,12 @@
 
 /**
  * WorkerPortalController
- * The worker's OWN dashboard/reports — not to be confused with
- * AdminWorkerController, which is the admin-side worker management screen.
+ * The staff's OWN dashboard/reports — not to be confused with
+ * AdminWorkerController, which is the admin-side staff management screen.
  *
- * Every query here is scoped to ONE worker_id (the logged-in worker's own),
+ * Every query here is scoped to ONE worker_id (the logged-in staff's own),
  * via ReportModel::workerOwnSummary() — there is no code path in this
- * controller that can return another worker's numbers or salon-wide totals.
+ * controller that can return another staff's numbers or salon-wide totals.
  */
 class WorkerPortalController
 {
@@ -17,7 +17,7 @@ class WorkerPortalController
         $this->redirectIfMustChangePassword();
         $worker = $this->currentWorkerProfile();
 
-        $pageTitle = 'Worker Dashboard';
+        $pageTitle = 'Staff Dashboard';
 
         $today = date('Y-m-d');
         $weekStart = date('Y-m-d', strtotime('monday this week'));
@@ -72,7 +72,7 @@ class WorkerPortalController
     }
 
     /**
-     * Export worker report as PDF
+     * Export staff report as PDF
      */
     public function exportPdf(): void
     {
@@ -103,20 +103,20 @@ class WorkerPortalController
         $workerName = $worker['full_name'];
         $summary = ReportModel::workerOwnSummary($worker['id'], $range['start'], $range['end']);
         
-        // Get the worker's daily breakdown for the period
+        // Get the staff's daily breakdown for the period
         $dailyBreakdown = $this->getWorkerDailyBreakdown($worker['id'], $range['start'], $range['end']);
 
         // Generate the PDF
         $pdf = $this->buildPdf($business, $workerName, $range, $summary, $dailyBreakdown);
 
-        AuditLog::record('export_pdf', "Exported worker report for {$workerName} ({$range['label']}, {$range['start']} to {$range['end']})");
+        AuditLog::record('export_pdf', "Exported staff report for {$workerName} ({$range['label']}, {$range['start']} to {$range['end']})");
 
         $filename = 'salonflow-worker-report-' . $range['start'] . '-to-' . $range['end'] . '.pdf';
         $pdf->streamDownload($filename);
     }
 
     /**
-     * Get daily breakdown for a worker
+     * Get daily breakdown for a staff
      */
     private function getWorkerDailyBreakdown(int $workerId, string $startDate, string $endDate): array
     {
@@ -144,7 +144,7 @@ class WorkerPortalController
     }
 
     /**
-     * Build the PDF for worker report.
+     * Build the PDF for staff report.
      *
      * This works in two passes rather than drawing directly onto a
      * SimplePdf as it goes:
@@ -186,10 +186,10 @@ class WorkerPortalController
         $addText($leftMargin, $y, $business['name'] ?? 'SalonFlow', 18, true);
         $y += 22;
 
-        $addText($leftMargin, $y, "Worker Performance Report", 14, true);
+        $addText($leftMargin, $y, "Staff Performance Report", 14, true);
         $y += 16;
 
-        $addText($leftMargin, $y, "Worker: {$workerName}", 11);
+        $addText($leftMargin, $y, "Staff: {$workerName}", 11);
         $addText(300, $y, "Period: {$range['label']}", 11);
         $y += 14;
         $addText($leftMargin, $y, "Date Range: {$range['start']} to {$range['end']}", 10);
@@ -368,7 +368,7 @@ class WorkerPortalController
     /**
      * Looks up the worker_profiles row linked to the logged-in account.
      * This should always succeed for anyone who reached here (you can't
-     * log in as role='worker' without a linked profile — see how worker
+     * log in as role='worker' without a linked profile — see how staff
      * accounts are created in AdminWorkerController), but if it somehow
      * didn't, fail safe by logging out rather than showing a broken page.
      */
@@ -386,7 +386,7 @@ class WorkerPortalController
     }
 
     /**
-     * API endpoint for heartbeat updates on worker dashboard
+     * API endpoint for heartbeat updates on staff dashboard
      * Returns fresh data without reloading the page
      */
     public function heartbeat(): void
@@ -399,7 +399,7 @@ class WorkerPortalController
         
         $today = date('Y-m-d');
         
-        // Check if there are new transactions since last update for this worker
+        // Check if there are new transactions since last update for this staff
         $newTransactions = TransactionModel::countNewSinceForWorker($lastUpdate, $worker['id']);
         
         // If no new transactions, return 304 Not Modified

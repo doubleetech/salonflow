@@ -53,7 +53,7 @@ $currentMethod = $field('payment_method', 'cash');
         <?php endif; ?>
 
         <?php if (empty($workers)): ?>
-            <div class="alert alert--error">No active workers are assigned to your branch yet. Ask your Admin to add one.</div>
+            <div class="alert alert--error">No active staffs are assigned to your branch yet. Ask your Admin to add one.</div>
         <?php else: ?>
 
         <form method="POST"
@@ -74,9 +74,9 @@ $currentMethod = $field('payment_method', 'cash');
                 <p class="field-hint">Only yesterday can be backdated, and only if it isn't closed yet.</p>
             <?php endif; ?>
 
-            <label for="worker_id">Worker</label>
+            <label for="worker_id">Staff</label>
             <select id="worker_id" name="worker_id" required>
-                <option value="">-- Select Worker --</option>
+                <option value="">-- Select Staff --</option>
                 <?php foreach ($workers as $w): ?>
                     <option value="<?php echo $w['id']; ?>" <?php echo ((string) $field('worker_id') === (string) $w['id']) ? 'selected' : ''; ?>>
                         <?php echo htmlspecialchars($w['full_name']); ?><?php echo $w['specialty'] ? ' — ' . htmlspecialchars($w['specialty']) : ''; ?>
@@ -116,7 +116,7 @@ $currentMethod = $field('payment_method', 'cash');
             <input type="number" id="tip_amount" name="tip_amount" step="0.01" min="0"
                 value="<?php echo htmlspecialchars($field('tip_amount', '0')); ?>"
                 class="no-spinner">
-            <p class="field-hint">Tips go entirely to the worker and are never part of the commission calculation.</p>
+            <p class="field-hint">Tips go entirely to the Staff and are never part of the commission calculation.</p>
 
             <label for="note">Note (optional)</label>
             <textarea id="note" name="note" rows="2"><?php echo htmlspecialchars($field('note', '')); ?></textarea>

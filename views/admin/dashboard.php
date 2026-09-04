@@ -49,7 +49,7 @@
             <div class="stat-card"><span class="stat-card__label">Transfer Total</span><span class="stat-card__value" id="transferTotal">₦<?php echo number_format((float) $todaySummary['transfer_total'], 2); ?></span></div>
             <div class="stat-card"><span class="stat-card__label">POS Total</span><span class="stat-card__value" id="posTotal">₦<?php echo number_format((float) $todaySummary['pos_total'], 2); ?></span></div>
             <div class="stat-card"><span class="stat-card__label">Tips</span><span class="stat-card__value" id="tipsTotal">₦<?php echo number_format((float) $todaySummary['tips_total'], 2); ?></span></div>
-            <div class="stat-card"><span class="stat-card__label">Worker Commissions</span><span class="stat-card__value" id="commissionsTotal">₦<?php echo number_format((float) $todaySummary['worker_commissions'], 2); ?></span></div>
+            <div class="stat-card"><span class="stat-card__label">Staff Commissions</span><span class="stat-card__value" id="commissionsTotal">₦<?php echo number_format((float) $todaySummary['worker_commissions'], 2); ?></span></div>
             <div class="stat-card"><span class="stat-card__label">Salon Earnings</span><span class="stat-card__value" id="salonEarnings">₦<?php echo number_format((float) $todaySummary['salon_earnings'], 2); ?></span></div>
         </div>
 
@@ -70,12 +70,12 @@
             </tbody>
         </table>
 
-        <h2 class="section-heading">Worker Performance — Today</h2>
+        <h2 class="section-heading">Staff Performance — Today</h2>
         <table class="data-table">
-            <thead><tr><th>Worker</th><th>Branch</th><th>Sales</th><th>Revenue</th><th>Commission</th><th>Tips</th></tr></thead>
+            <thead><tr><th>Staff</th><th>Branch</th><th>Sales</th><th>Revenue</th><th>Commission</th><th>Tips</th></tr></thead>
             <tbody id="workerTableBody">
                 <?php if (empty($workerPerformance)): ?>
-                    <tr><td colspan="6" class="empty-row">No workers yet.</td></tr>
+                    <tr><td colspan="6" class="empty-row">No staff yet.</td></tr>
                 <?php endif; ?>
                 <?php foreach ($workerPerformance as $w): ?>
                 <tr>

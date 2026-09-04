@@ -481,7 +481,7 @@ class CashierController
         $validMethods = ['cash', 'transfer', 'pos', 'combination'];
 
         if ($workerId <= 0) {
-            return [false, [], 'Please select a worker.'];
+            return [false, [], 'Please select a staff member.'];
         }
         if ($amountMade <= 0) {
             return [false, [], 'Amount made must be greater than zero.'];
