@@ -131,6 +131,6 @@ $currentMethod = $field('payment_method', 'cash');
             $backUrl .= '&date=' . urlencode($sale['business_date']);
         }
         ?>
-        <a class="link-back" href="<?php echo $backUrl; ?>">&larr; Back to Records</a>
+        <a class="link-back" href="<?php echo $backUrl; ?>"> Back to Records</a>
     </main>
 </div>

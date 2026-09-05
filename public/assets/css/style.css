@@ -775,17 +775,6 @@ select[multiple] {
     position: relative;
 }
 
-.stat-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, var(--color-brass), var(--color-brass-light));
-    opacity: 0;
-    transition: opacity var(--transition);
-}
 
 .stat-card:hover {
     box-shadow: var(--shadow-hover);
@@ -817,11 +806,7 @@ select[multiple] {
     box-shadow: 0 4px 24px rgba(169, 129, 45, 0.08);
 }
 
-.stat-card--tips::before {
-    background: linear-gradient(90deg, var(--color-brass), var(--color-brass-light));
-    opacity: 1;
-    height: 3px;
-}
+
 
 .stat-card--tips .stat-card__label {
     color: var(--color-brass-dark);

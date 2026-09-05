@@ -77,6 +77,6 @@
         </form>
         <?php endif; ?>
 
-        <a class="link-back" href="<?php echo APP_URL; ?>/index.php?route=admin/workers">&larr; Back to Staff</a>
+        <a class="link-back" href="<?php echo APP_URL; ?>/index.php?route=admin/workers"> Back to Staff</a>
     </main>
 </div>

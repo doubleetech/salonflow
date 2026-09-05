@@ -19,6 +19,6 @@
             <button type="submit" class="btn btn--primary">Send Code</button>
         </form>
 
-        <a class="link-back" href="<?php echo APP_URL; ?>/index.php?route=admin-login">&larr; Back to Login</a>
+        <a class="link-back" href="<?php echo APP_URL; ?>/index.php?route=admin-login"> Back to Login</a>
     </div>
 </div>

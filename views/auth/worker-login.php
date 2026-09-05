@@ -24,7 +24,7 @@
         </form>
 
         <p class="hint-muted">Forgot your password? Ask your Admin to reset it.</p>
-        <a class="link-back" href="<?php echo APP_URL; ?>/index.php?route=who-are-you">&larr; Back</a>
+        <a class="link-back" href="<?php echo APP_URL; ?>/index.php?route=who-are-you"> Back</a>
     </div>
 </div>
 

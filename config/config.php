@@ -33,18 +33,13 @@ define('ASSET_VERSION', '8');
 define('SESSION_NAME', 'salonflow_session');
 define('SESSION_LIFETIME', 60 * 60 * 8); // 8 hours
 
-// --- Password Recovery (PHPMailer / SMTP) ---
-// REQUIRED for "Forgot Password" to actually send an email. Until these
-// are filled in with a real SMTP account (Gmail App Password, SendGrid,
-// Mailtrap for testing, your hosting provider's SMTP, etc.), the OTP will
-// still be generated and stored correctly, but Mailer::sendOtpEmail() will
-// fail silently (logged to php_error_log) and the Admin won't receive it.
-define('SMTP_HOST', '');
+// --- Email Configuration (using Gmail SMTP) ---
+define('SMTP_HOST', 'smtp.gmail.com');
 define('SMTP_PORT', 587);
-define('SMTP_USERNAME', '');
-define('SMTP_PASSWORD', '');
-define('SMTP_FROM_EMAIL', 'no-reply@salonflow.local');
-define('SMTP_FROM_NAME', 'SalonFlow');
+define('SMTP_USERNAME', 'teeboss017@gmail.com');
+define('SMTP_PASSWORD', 'nkga yarr qdwk kudj'); // Replace with your app password
+define('SMTP_FROM_EMAIL', 'teeboss017@gmail.com');
+define('SMTP_FROM_NAME', 'Now Barbershop');
 
 date_default_timezone_set(APP_TIMEZONE);
 

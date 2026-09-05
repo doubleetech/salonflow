@@ -53,6 +53,6 @@
             <button type="submit" class="btn btn--primary"><?php echo $cashier ? 'Save Changes' : 'Add Cashier'; ?></button>
         </form>
 
-        <a class="link-back" href="<?php echo APP_URL; ?>/index.php?route=admin/cashiers">&larr; Back to Cashiers</a>
+        <a class="link-back" href="<?php echo APP_URL; ?>/index.php?route=admin/cashiers">Back to Cashiers</a>
     </main>
 </div>

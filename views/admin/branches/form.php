@@ -45,6 +45,6 @@
             <button type="submit" class="btn btn--primary"><?php echo $branch ? 'Save Changes' : 'Add Branch'; ?></button>
         </form>
 
-        <a class="link-back" href="<?php echo APP_URL; ?>/index.php?route=admin/branches">&larr; Back to Branches</a>
+        <a class="link-back" href="<?php echo APP_URL; ?>/index.php?route=admin/branches"> Back to Branches</a>
     </main>
 </div>

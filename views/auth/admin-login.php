@@ -24,7 +24,7 @@
         </form>
 
         <a class="link-muted" href="<?php echo APP_URL; ?>/index.php?route=forgot-password">Forgot Password?</a>
-        <a class="link-back" href="<?php echo APP_URL; ?>/index.php?route=who-are-you">&larr; Back</a>
+        <a class="link-back" href="<?php echo APP_URL; ?>/index.php?route=who-are-you"> Back</a>
     </div>
 </div>
 <script>

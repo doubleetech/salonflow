@@ -22,6 +22,9 @@ class PasswordResetModel
     {
         $db = Database::connect();
         $hash = password_hash($plainOtp, PASSWORD_DEFAULT);
+        
+        // Debug: Log hash length to confirm it's not being truncated
+        error_log("OTP Hash length: " . strlen($hash));
 
         $stmt = $db->prepare(
             "INSERT INTO password_resets (user_id, otp_code, expires_at, used)

@@ -21,6 +21,6 @@
         </form>
 
         <a class="link-muted" href="<?php echo APP_URL; ?>/index.php?route=forgot-password">Didn't get a code? Request a new one</a>
-        <a class="link-back" href="<?php echo APP_URL; ?>/index.php?route=admin-login">&larr; Back to Login</a>
+        <a class="link-back" href="<?php echo APP_URL; ?>/index.php?route=admin-login"> Back to Login</a>
     </div>
 </div>
