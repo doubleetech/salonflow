@@ -99,7 +99,8 @@ $displayEnd = DateRange::formatForDisplay($selectedEnd);
         </div>
 
         <h2 class="section-heading">Staff Performance</h2>
-        <table class="data-table">
+         <div class="table-wrapper">
+             <table class="data-table">
             <thead><tr><th>Staff</th><th>Sales</th><th>Revenue</th><th>Commission</th><th>Tips</th></tr></thead>
             <tbody>
                 <?php if (empty($workerPerformance)): ?>
@@ -117,6 +118,8 @@ $displayEnd = DateRange::formatForDisplay($selectedEnd);
             </tbody>
         </table>
 
+            </div>   
+       
         <?php endif; ?>
     </main>
 </div>

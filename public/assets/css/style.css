@@ -389,6 +389,7 @@ a:hover {
     max-width: 1200px;
     margin: 0 auto;
     padding: 32px 24px;
+    overflow-x: hidden;
 }
 
 .content--narrow { 
@@ -496,6 +497,32 @@ a:hover {
     border-radius: 2px;
 }
 
+/* ---------- Notice ---------- */
+.notice {
+    padding: 20px 24px;
+    border-radius: var(--radius);
+    margin: 16px 0 24px 0;
+    font-size: 14px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-left: 4px solid var(--color-brass);
+    color: var(--color-ink);
+    box-shadow: var(--shadow);
+    line-height: 1.7;
+}
+
+.notice strong {
+    color: var(--color-brass-dark);
+}
+
+.notice a {
+    font-weight: 600;
+    color: var(--color-brass-dark);
+}
+
+.notice a:hover {
+    color: var(--color-brass);
+}
 
 /* ---------- Field Hint ---------- */
 .field-hint {
@@ -760,6 +787,7 @@ select[multiple] {
     gap: 18px;
     margin-top: 16px;
     margin-bottom: 8px;
+    max-width: 100%;
 }
 
 .stat-card {
@@ -775,14 +803,9 @@ select[multiple] {
     position: relative;
 }
 
-
 .stat-card:hover {
     box-shadow: var(--shadow-hover);
     transform: translateY(-4px);
-}
-
-.stat-card:hover::before {
-    opacity: 1;
 }
 
 .stat-card__label {
@@ -806,8 +829,6 @@ select[multiple] {
     box-shadow: 0 4px 24px rgba(169, 129, 45, 0.08);
 }
 
-
-
 .stat-card--tips .stat-card__label {
     color: var(--color-brass-dark);
 }
@@ -822,16 +843,31 @@ select[multiple] {
     transform: translateY(-4px);
 }
 
+/* ---------- Table Wrapper ---------- */
+.table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-top: 16px;
+    border-radius: var(--radius);
+    border: 2px solid var(--color-border);
+    background: var(--color-surface);
+    max-width: 100%;
+}
+
+.table-wrapper .data-table {
+    border: none;
+    border-radius: 0;
+    margin-top: 0;
+    box-shadow: none;
+    min-width: 600px;
+    width: 100%;
+}
+
 /* ---------- Tables ---------- */
 .data-table {
     width: 100%;
     border-collapse: collapse;
     background: var(--color-surface);
-    border: 2px solid var(--color-border);
-    border-radius: var(--radius);
-    overflow: hidden;
-    box-shadow: var(--shadow-drop);
-    margin-top: 16px;
 }
 
 .data-table th,
@@ -953,6 +989,29 @@ select[multiple] {
     color: #1a5276;
     border-color: #c5d8e8;
     border-left: 4px solid #1a5276;
+}
+
+.alert--temp-password {
+    background: var(--color-warning-bg);
+    border: 2px solid var(--color-brass);
+    color: var(--color-warning);
+    padding: 16px 20px;
+    border-radius: var(--radius-sm);
+    margin-bottom: 16px;
+    font-size: 14px;
+    line-height: 1.6;
+    border-left: 4px solid var(--color-brass);
+}
+
+.alert--temp-password code {
+    background: var(--color-surface);
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 16px;
+    font-weight: 700;
+    font-family: var(--font-mono);
+    color: var(--color-brass-dark);
+    border: 1px solid var(--color-border);
 }
 
 /* ---------- Password Wrapper ---------- */
@@ -1235,12 +1294,11 @@ select[multiple] {
         font-size: 12px;
     }
     
-    /* Show hamburger in topbar */
     .nav-toggle {
         display: flex;
+        right: 16px;
     }
-    
-    /* Hide nav-container on mobile - nav becomes slide menu */
+
     .admin-nav,
     .cashier-nav,
     .worker-nav {
@@ -1328,7 +1386,10 @@ select[multiple] {
         color: var(--color-brass);
     }
     
-    .content { padding: 20px 16px; }
+    .content { 
+        padding: 20px 16px; 
+        overflow-x: hidden;
+    }
     
     .content-header {
         flex-direction: column;
@@ -1348,21 +1409,31 @@ select[multiple] {
     .panel-form .filter-actions { flex-direction: column; }
     .panel-form .filter-actions .btn { width: 100%; min-width: unset; }
     
-    .data-table {
-        font-size: 13px;
-        display: table;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
+    /* Table wrapper for mobile */
+    .table-wrapper {
+        margin: 16px -16px 0 -16px;
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+        max-width: none;
     }
-    .data-table th, .data-table td { 
+    
+    .table-wrapper .data-table {
+        min-width: 500px;
+    }
+    
+    .data-table th,
+    .data-table td { 
         padding: 10px 14px; 
-        white-space: nowrap; 
+        font-size: 13px;
+        white-space: nowrap;
     }
     
     .card-grid {
         grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
         gap: 12px;
     }
+    
     .stat-card { padding: 18px; }
     .stat-card__value { font-size: 22px; }
     .stat-card--tips .stat-card__value { font-size: 24px; }
@@ -1386,7 +1457,10 @@ select[multiple] {
     .topbar__brand { font-size: 17px; }
     .topbar__user { font-size: 12px; gap: 10px; }
     
-    .content { padding: 16px 12px; }
+    .content { 
+        padding: 16px 12px; 
+        overflow-x: hidden;
+    }
     
     .content-header h1 { font-size: 20px; }
     
@@ -1405,7 +1479,17 @@ select[multiple] {
         font-size: 14px;
     }
     
-    .data-table th, .data-table td { 
+    /* Table wrapper for mobile */
+    .table-wrapper {
+        margin: 16px -12px 0 -12px;
+    }
+    
+    .table-wrapper .data-table {
+        min-width: 400px;
+    }
+    
+    .data-table th,
+    .data-table td { 
         padding: 8px 10px; 
         font-size: 12px; 
     }
@@ -1425,6 +1509,7 @@ select[multiple] {
         grid-template-columns: 1fr 1fr;
         gap: 10px;
     }
+    
     .stat-card { padding: 14px; }
     .stat-card__value { font-size: 18px; }
     .stat-card--tips .stat-card__value { font-size: 20px; }
@@ -1436,6 +1521,7 @@ select[multiple] {
         padding: 14px 16px;
         gap: 12px;
     }
+    
     .role-btn__icon {
         width: 42px;
         height: 42px;

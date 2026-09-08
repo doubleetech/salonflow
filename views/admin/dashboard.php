@@ -54,7 +54,8 @@
         </div>
 
         <h2 class="section-heading">Branch Revenue — Today</h2>
-        <table class="data-table">
+        <div class="table-wrapper">
+             <table class="data-table">
             <thead><tr><th>Branch</th><th>Sales</th><th>Revenue</th></tr></thead>
             <tbody id="branchTableBody">
                 <?php if (empty($branchBreakdown)): ?>
@@ -69,9 +70,12 @@
                 <?php endforeach; ?>
             </tbody>
         </table>
+        </div>
+       
 
         <h2 class="section-heading">Staff Performance — Today</h2>
-        <table class="data-table">
+        <div class="table-wrapper">
+              <table class="data-table">
             <thead><tr><th>Staff</th><th>Branch</th><th>Sales</th><th>Revenue</th><th>Commission</th><th>Tips</th></tr></thead>
             <tbody id="workerTableBody">
                 <?php if (empty($workerPerformance)): ?>
@@ -89,5 +93,7 @@
                 <?php endforeach; ?>
             </tbody>
         </table>
+        </div>
+      
     </main>
 </div>

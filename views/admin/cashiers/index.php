@@ -34,8 +34,8 @@
                 <br>Write this down now — it will not be shown again.
             </div>
         <?php endif; ?>
-
-        <table class="data-table">
+            <div class="table-wrapper">
+                <table class="data-table">
             <thead>
                 <tr>
                     <th>Name</th>
@@ -86,5 +86,7 @@
                 <?php endforeach; ?>
             </tbody>
         </table>
+            </div>
+        
     </main>
 </div>

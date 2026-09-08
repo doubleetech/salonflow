@@ -111,7 +111,8 @@ $displayEnd = DateRange::formatForDisplay($selectedEnd);
 
         <?php if ($branchBreakdown !== null): ?>
         <h2 class="section-heading">Branch Revenue</h2>
-        <table class="data-table">
+         <div class="table-wrapper">
+             <table class="data-table">
             <thead><tr><th>Branch</th><th>Sales</th><th>Revenue</th><th>Commissions</th><th>Salon Earnings</th></tr></thead>
             <tbody>
                 <?php foreach ($branchBreakdown as $b): ?>
@@ -125,10 +126,13 @@ $displayEnd = DateRange::formatForDisplay($selectedEnd);
                 <?php endforeach; ?>
             </tbody>
         </table>
+            </div>   
+       
         <?php endif; ?>
 
         <h2 class="section-heading">Worker Performance</h2>
-        <table class="data-table">
+         <div class="table-wrapper">
+             <table class="data-table">
             <thead><tr><th>Worker</th><th>Branch</th><th>Sales</th><th>Revenue</th><th>Commission</th><th>Tips</th></tr></thead>
             <tbody>
                 <?php if (empty($workerPerformance)): ?>
@@ -146,9 +150,12 @@ $displayEnd = DateRange::formatForDisplay($selectedEnd);
                 <?php endforeach; ?>
             </tbody>
         </table>
+            </div>   
+       
 
         <h2 class="section-heading">Closures in This Period</h2>
-        <table class="data-table">
+         <div class="table-wrapper">
+            <table class="data-table">
             <thead><tr><th>Branch</th><th>Date</th><th>Status</th><th>Closed By</th><th>Revenue</th></tr></thead>
             <tbody>
                 <?php if (empty($closures)): ?>
@@ -169,6 +176,8 @@ $displayEnd = DateRange::formatForDisplay($selectedEnd);
                 <?php endforeach; ?>
             </tbody>
         </table>
+            </div>   
+        
 
         <?php endif; ?>
     </main>

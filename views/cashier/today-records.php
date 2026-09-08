@@ -92,8 +92,8 @@ $canRecordHere = ($isToday || $isYesterday) && !$isClosed;
                 <button type="submit" class="btn btn--brass">Close Business Day</button>
             </form>
         <?php endif; ?>
-
-        <table class="data-table">
+             <div class="table-wrapper">
+                <table class="data-table">
             <thead>
                 <tr>
                     <th>Time</th>
@@ -128,5 +128,7 @@ $canRecordHere = ($isToday || $isYesterday) && !$isClosed;
                 <?php endforeach; ?>
             </tbody>
         </table>
+            </div>   
+        
     </main>
 </div>

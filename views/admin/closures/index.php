@@ -56,7 +56,8 @@
         </form>
 
         <h2 class="section-heading">Recent Closures</h2>
-        <table class="data-table">
+         <div class="table-wrapper">
+            <table class="data-table">
             <thead>
                 <tr>
                     <th>Branch</th>
@@ -94,5 +95,7 @@
                 <?php endforeach; ?>
             </tbody>
         </table>
+            </div>   
+        
     </main>
 </div>

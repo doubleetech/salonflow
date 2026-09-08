@@ -69,8 +69,8 @@ $buildPageUrl = function (int $targetPage) use ($selectedAction, $selectedStart,
         </form>
 
         <p class="field-hint"><?php echo number_format($total); ?> total entries.</p>
-
-        <table class="data-table">
+        <div class="table-wrapper">
+             <table class="data-table">
             <thead>
                 <tr>
                     <th>Time</th>
@@ -95,6 +95,8 @@ $buildPageUrl = function (int $targetPage) use ($selectedAction, $selectedStart,
                 <?php endforeach; ?>
             </tbody>
         </table>
+        </div>
+       
 
         <?php if ($totalPages > 1): ?>
         <div class="pagination">

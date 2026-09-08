@@ -27,8 +27,8 @@
         <?php if (!empty($success)): ?>
             <div class="alert alert--success"><?php echo htmlspecialchars($success); ?></div>
         <?php endif; ?>
-
-        <table class="data-table">
+            <div class="table-wrapper">
+                <table class="data-table">
             <thead>
                 <tr>
                     <th>Name</th>
@@ -66,5 +66,7 @@
                 <?php endforeach; ?>
             </tbody>
         </table>
+            </div>   
+        
     </main>
 </div>
