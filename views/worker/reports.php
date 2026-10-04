@@ -87,6 +87,7 @@ $displayEnd = DateRange::formatForDisplay($selectedEnd);
             <div class="stat-card"><span class="stat-card__label">Revenue</span><span class="stat-card__value">₦<?php echo number_format((float) $summary['revenue'], 2); ?></span></div>
             <div class="stat-card"><span class="stat-card__label">My Commission</span><span class="stat-card__value">₦<?php echo number_format((float) $summary['commission'], 2); ?></span></div>
             <div class="stat-card"><span class="stat-card__label">My Tips</span><span class="stat-card__value">₦<?php echo number_format((float) $summary['tips'], 2); ?></span></div>
+            <div class="stat-card stat-card--tips"><span class="stat-card__label">My Commissions + Tips</span><span class="stat-card__value">₦<?php echo number_format((float) $summary['staff_payout'], 2); ?></span></div>
         </div>
         <?php endif; ?>
     </main>

@@ -112,6 +112,7 @@ class ReportController
             ['Tips', $summary['tips_total']],
             ['Total Revenue + Tips', $revenuePlusTips],
             ['Worker Commissions', $summary['worker_commissions']],
+            ['Staff Commissions + Tips', $summary['staff_payout']],
             ['Salon Earnings', $summary['salon_earnings']],
             ['Number of Sales', (string) $summary['record_count']],
         ];
@@ -133,8 +134,8 @@ class ReportController
             $y += 12;
         }
 
-        $y = self::tableSection($pdf, $y, 'Worker Performance', ['Worker', 'Branch', 'Sales', 'Revenue', 'Commission', 'Tips'], [40, 150, 230, 290, 380, 470],
-            array_map(fn($r) => [$r['full_name'], $r['branch_name'], (string) $r['record_count'], self::money($r['revenue']), self::money($r['commission']), self::money($r['tips'])], $workerPerformance)
+        $y = self::tableSection($pdf, $y, 'Worker Performance', ['Worker', 'Branch', 'Sales', 'Revenue', 'Commission', 'Tips', 'Comm + Tips'], [40, 150, 230, 290, 380, 470, 530],
+            array_map(fn($r) => [$r['full_name'], $r['branch_name'], (string) $r['record_count'], self::money($r['revenue']), self::money($r['commission']), self::money($r['tips']), self::money($r['commission'] + $r['tips'])], $workerPerformance)
         );
 
         return $pdf;

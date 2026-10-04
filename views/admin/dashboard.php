@@ -50,6 +50,7 @@
             <div class="stat-card"><span class="stat-card__label">POS Total</span><span class="stat-card__value" id="posTotal">₦<?php echo number_format((float) $todaySummary['pos_total'], 2); ?></span></div>
             <div class="stat-card"><span class="stat-card__label">Tips</span><span class="stat-card__value" id="tipsTotal">₦<?php echo number_format((float) $todaySummary['tips_total'], 2); ?></span></div>
             <div class="stat-card"><span class="stat-card__label">Staff Commissions</span><span class="stat-card__value" id="commissionsTotal">₦<?php echo number_format((float) $todaySummary['worker_commissions'], 2); ?></span></div>
+            <div class="stat-card stat-card--tips"><span class="stat-card__label">Staff Commissions + Tips</span><span class="stat-card__value" id="staffCommissionTipsToday">₦<?php echo number_format((float) $todaySummary['staff_payout'], 2); ?></span></div>
             <div class="stat-card"><span class="stat-card__label">Salon Earnings</span><span class="stat-card__value" id="salonEarnings">₦<?php echo number_format((float) $todaySummary['salon_earnings'], 2); ?></span></div>
         </div>
 
@@ -76,10 +77,10 @@
         <h2 class="section-heading">Staff Performance — Today</h2>
         <div class="table-wrapper">
               <table class="data-table">
-            <thead><tr><th>Staff</th><th>Branch</th><th>Sales</th><th>Revenue</th><th>Commission</th><th>Tips</th></tr></thead>
+            <thead><tr><th>Staff</th><th>Branch</th><th>Sales</th><th>Revenue</th><th>Commission</th><th>Tips</th><th>Comm + Tips</th></tr></thead>
             <tbody id="workerTableBody">
                 <?php if (empty($workerPerformance)): ?>
-                    <tr><td colspan="6" class="empty-row">No staff yet.</td></tr>
+                    <tr><td colspan="7" class="empty-row">No staff yet.</td></tr>
                 <?php endif; ?>
                 <?php foreach ($workerPerformance as $w): ?>
                 <tr>
@@ -89,6 +90,7 @@
                     <td class="amount">₦<?php echo number_format((float) $w['revenue'], 2); ?></td>
                     <td class="amount">₦<?php echo number_format((float) $w['commission'], 2); ?></td>
                     <td class="amount">₦<?php echo number_format((float) $w['tips'], 2); ?></td>
+                    <td class="amount">₦<?php echo number_format((float) $w['commission'] + (float) $w['tips'], 2); ?></td>
                 </tr>
                 <?php endforeach; ?>
             </tbody>

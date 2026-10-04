@@ -11,7 +11,7 @@
  */
 class ReportModel
 {
-    /**
+        /**
      * Business-wide (or single-branch) totals for a date range.
      * $branchId = null means "entire business" (all branches combined).
      *
@@ -24,6 +24,10 @@ class ReportModel
      * are meant to represent actual money movement (for reconciling against
      * a bank statement), which is why they differ from total_revenue,
      * which deliberately excludes tips (per the spec's separate "Tips" line).
+     *
+     * staff_payout is a convenience figure — worker_commissions + tips_total
+     * — since both flow to the same people (staff) and reports/dashboards
+     * present them together.
      */
     public static function summary(?int $branchId, string $startDate, string $endDate): array
 {
@@ -44,17 +48,20 @@ class ReportModel
                 -- Salon earnings (already calculated, just display)
                 COALESCE(SUM(t.salon_share), 0) AS salon_earnings,
                 -- Tips displayed separately, not used in any calculation
-                COALESCE(SUM(tip.amount), 0) AS tips_total
+                COALESCE(SUM(tip.amount), 0) AS tips_total,
+                -- Combined figure: everything that flows to staff
+                COALESCE(SUM(t.worker_commission), 0) + COALESCE(SUM(tip.amount), 0) AS staff_payout
             FROM transactions t
             LEFT JOIN transaction_tips tip ON tip.transaction_id = t.id
             WHERE t.business_date BETWEEN :start AND :end";
 
     $params = ['start' => $startDate, 'end' => $endDate];
 
-    if ($branchId !== null) {
+    if ($branchId !== null) 
+        {
         $sql .= " AND t.branch_id = :branch_id";
         $params['branch_id'] = $branchId;
-    }
+        }
 
     $stmt = $db->prepare($sql);
     $stmt->execute($params);
@@ -120,11 +127,14 @@ class ReportModel
     return $stmt->fetchAll();
 }
 
-    /**
+        /**
      * One specific worker's own numbers for a date range — nothing about
      * any other worker, no branch totals, no salon-wide figures. Powers
      * the worker portal's dashboard and reports (workers can only ever
      * see their own performance, per the spec for that feature).
+     *
+     * staff_payout = commission + tips, i.e. everything this worker
+     * personally earned in the period.
      */
     public static function workerOwnSummary(int $workerId, string $startDate, string $endDate): array
     {
@@ -134,7 +144,8 @@ class ReportModel
                 COUNT(t.id) AS record_count,
                 COALESCE(SUM(t.amount_made), 0) AS revenue,
                 COALESCE(SUM(t.worker_commission), 0) AS commission,
-                COALESCE(SUM(tip.amount), 0) AS tips
+                COALESCE(SUM(tip.amount), 0) AS tips,
+                COALESCE(SUM(t.worker_commission), 0) + COALESCE(SUM(tip.amount), 0) AS staff_payout
              FROM transactions t
              LEFT JOIN transaction_tips tip ON tip.transaction_id = t.id
              WHERE t.worker_id = :worker_id AND t.business_date BETWEEN :start AND :end"

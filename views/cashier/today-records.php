@@ -112,7 +112,7 @@ $canRecordHere = ($isToday || $isYesterday) && !$isClosed;
                 <tr>
                     <td><?php echo date('g:i A', strtotime($r['created_at'])); ?></td>
                     <td><?php echo htmlspecialchars($r['worker_name']); ?></td>
-                    <td class="amount">₦<?php echo number_format((float) $r['amount_made'], 2); ?></td>
+                    <td class="amount"><?php echo ((float) $r['amount_made'] > 0) ? '₦' . number_format((float) $r['amount_made'], 2) : '—'; ?></td>
                     <td>
                         <span class="badge badge--muted"><?php echo ucfirst($r['payment_method']); ?></span>
                     </td>

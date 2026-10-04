@@ -213,6 +213,7 @@ class WorkerPortalController
             ['Revenue', $this->money($summary['revenue'])],
             ['Commission Earned', $this->money($summary['commission'])],
             ['Tips Received', $this->money($summary['tips'])],
+            ['Commission + Tips', $this->money($summary['staff_payout'])],
         ];
 
         foreach ($summaryData as $index => $row) {

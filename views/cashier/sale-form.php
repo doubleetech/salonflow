@@ -22,6 +22,18 @@ $field = function (string $key, $default = '', ?string $saleKey = null) use ($ol
 };
 
 $currentMethod = $field('payment_method', 'cash');
+
+// Find the currently-selected staff name so the combobox input can be
+// pre-filled in edit mode (or after a failed submit) without JS having to
+// guess. $workers is a list of profiles; match against the current value.
+$currentWorkerId = (string) $field('worker_id');
+$currentWorkerName = '';
+foreach ($workers as $w) {
+    if ((string) $w['id'] === $currentWorkerId) {
+        $currentWorkerName = $w['full_name'];
+        break;
+    }
+}
 ?>
 <div class="app-shell">
      <header class="topbar">
@@ -74,20 +86,37 @@ $currentMethod = $field('payment_method', 'cash');
                 <p class="field-hint">Only yesterday can be backdated, and only if it isn't closed yet.</p>
             <?php endif; ?>
 
-            <label for="worker_id">Staff</label>
-            <select id="worker_id" name="worker_id" required>
-                <option value="">-- Select Staff --</option>
-                <?php foreach ($workers as $w): ?>
-                    <option value="<?php echo $w['id']; ?>" <?php echo ((string) $field('worker_id') === (string) $w['id']) ? 'selected' : ''; ?>>
-                        <?php echo htmlspecialchars($w['full_name']); ?><?php echo $w['specialty'] ? ' — ' . htmlspecialchars($w['specialty']) : ''; ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
+            <label for="staff_search">Staff</label>
+            <div class="staff-combobox" id="staff-combobox">
+                <input type="text"
+                       id="staff_search"
+                       placeholder="Type a name to search…"
+                       autocomplete="off"
+                       role="combobox"
+                       aria-autocomplete="list"
+                       aria-controls="staff-results"
+                       aria-expanded="false"
+                       value="<?php echo htmlspecialchars($currentWorkerName); ?>">
+
+                <div class="staff-combobox__results" id="staff-results" role="listbox" hidden></div>
+
+                <!-- Real form field: source of truth for submission. Visually
+                     hidden — the cashier interacts with #staff_search above. -->
+                <select id="worker_id" name="worker_id" required class="staff-combobox__native" tabindex="-1" aria-hidden="true">
+                    <option value="">-- Select Staff --</option>
+                    <?php foreach ($workers as $w): ?>
+                        <option value="<?php echo $w['id']; ?>" <?php echo ((string) $field('worker_id') === (string) $w['id']) ? 'selected' : ''; ?>>
+                            <?php echo htmlspecialchars($w['full_name']); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
 
             <label for="amount_made">Amount Made (₦)</label>
-            <input type="number" id="amount_made" name="amount_made" step="0.01" min="0.01"
-                   value="<?php echo htmlspecialchars($field('amount_made', '')); ?>" required
+            <input type="number" id="amount_made" name="amount_made" step="0.01" min="0"
+                   value="<?php echo htmlspecialchars($field('amount_made', '')); ?>"
                    class="no-spinner">
+            <p class="field-hint">Leave at 0 if this sale is tips only.</p>
 
             <label for="payment_method">Payment Method</label>
             <select id="payment_method" name="payment_method" required>

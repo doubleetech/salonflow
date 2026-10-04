@@ -46,6 +46,7 @@
             <div class="stat-card"><span class="stat-card__label">Cash Total</span><span class="stat-card__value" id="cashTotal">₦<?php echo number_format((float) $summary['cash_total'], 2); ?></span></div>
             <div class="stat-card"><span class="stat-card__label">Transfer Total</span><span class="stat-card__value" id="transferTotal">₦<?php echo number_format((float) $summary['transfer_total'], 2); ?></span></div>
             <div class="stat-card"><span class="stat-card__label">POS Total</span><span class="stat-card__value" id="posTotal">₦<?php echo number_format((float) $summary['pos_total'], 2); ?></span></div>
+            <div class="stat-card stat-card--tips"><span class="stat-card__label">Staff Commissions + Tips</span><span class="stat-card__value" id="staffCommissionTips">₦<?php echo number_format((float) $summary['worker_commissions_total'] + (float) $summary['tips_total'], 2); ?></span></div>
         </div>
     </main>
 </div>

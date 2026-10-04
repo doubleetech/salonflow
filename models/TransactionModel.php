@@ -200,6 +200,13 @@ class TransactionModel
      * Quick totals for "today" at one branch — powers the cashier dashboard.
      * Cash/Transfer/POS totals include tips, folded in proportionally to
      * each sale's channel split — same reasoning as ReportModel::summary().
+     *
+     * Also returns worker_commissions_total and tips_total separately, so
+     * the dashboard can show a combined "Staff Commissions + Tips" card
+     * without a second query. Note: these two are computed independently
+     * of the channel totals above — the channel totals fold tips INTO the
+     * channel split (for reconciliation), while tips_total here is the
+     * raw sum (for display alongside commissions).
      */
     public static function summaryForBranchToday(int $branchId): array
     {
@@ -210,7 +217,9 @@ class TransactionModel
                 COALESCE(SUM(t.amount_made), 0) AS total_revenue,
                 COALESCE(SUM(t.amount_cash + COALESCE(COALESCE(tip.amount, 0) * t.amount_cash / NULLIF(t.amount_made, 0), 0)), 0) AS cash_total,
                 COALESCE(SUM(t.amount_transfer + COALESCE(COALESCE(tip.amount, 0) * t.amount_transfer / NULLIF(t.amount_made, 0), 0)), 0) AS transfer_total,
-                COALESCE(SUM(t.amount_pos + COALESCE(COALESCE(tip.amount, 0) * t.amount_pos / NULLIF(t.amount_made, 0), 0)), 0) AS pos_total
+                COALESCE(SUM(t.amount_pos + COALESCE(COALESCE(tip.amount, 0) * t.amount_pos / NULLIF(t.amount_made, 0), 0)), 0) AS pos_total,
+                COALESCE(SUM(t.worker_commission), 0) AS worker_commissions_total,
+                COALESCE(SUM(tip.amount), 0) AS tips_total
              FROM transactions t
              LEFT JOIN transaction_tips tip ON tip.transaction_id = t.id
              WHERE t.branch_id = :branch_id AND t.business_date = CURDATE()"
