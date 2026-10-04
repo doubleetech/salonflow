@@ -36,220 +36,6 @@ document.addEventListener('DOMContentLoaded', function () {
     updateComboVisibility(); // run once on load, e.g. when editing an existing combination sale
 });
 
-
-// Phase 3b: Staff combobox on the sale form.
-//
-// As the cashier types in #staff_search, a floating list of matching staff
-// appears below it. Clicking (or keyboard-selecting) a result writes that
-// staff's id into the hidden #worker_id <select>, which remains the actual
-// form field. Server-side validation of worker_id is unchanged — this is
-// pure UI convenience.
-//
-// Behavior decisions:
-//   - Dropdown only opens once the user has typed at least 1 character.
-//   - Enter with no highlighted result auto-picks if there is exactly ONE match.
-//   - Click-outside / Escape closes the dropdown without changing the selection.
-//   - If the input text no longer matches the currently-selected staff,
-//     the hidden select is cleared so a stale value can't be submitted.
-document.addEventListener('DOMContentLoaded', function () {
-    var wrapper = document.getElementById('staff-combobox');
-    var searchInput = document.getElementById('staff_search');
-    var resultsBox = document.getElementById('staff-results');
-    var workerSelect = document.getElementById('worker_id');
-
-    if (!wrapper || !searchInput || !resultsBox || !workerSelect) {
-        return; // not on the sale form — nothing to do
-    }
-
-    // Snapshot staff once from the hidden <select>, so the native select
-    // remains the single source of truth and we never diverge from PHP.
-    var staff = [];
-    for (var i = 0; i < workerSelect.options.length; i++) {
-        var opt = workerSelect.options[i];
-        if (opt.value === '') continue; // skip placeholder
-        staff.push({ id: opt.value, name: opt.textContent.trim() });
-    }
-
-    var highlightIndex = -1; // -1 = nothing highlighted
-    var visibleMatches = []; // current filtered list, mirror of what's rendered
-
-    function escapeHtml(value) {
-        var div = document.createElement('div');
-        div.textContent = value === undefined || value === null ? '' : String(value);
-        return div.innerHTML;
-    }
-
-    function openResults() {
-        resultsBox.hidden = false;
-        searchInput.setAttribute('aria-expanded', 'true');
-    }
-
-    function closeResults() {
-        resultsBox.hidden = true;
-        resultsBox.innerHTML = '';
-        highlightIndex = -1;
-        visibleMatches = [];
-        searchInput.setAttribute('aria-expanded', 'false');
-    }
-
-    function setHighlight(newIndex) {
-        var items = resultsBox.querySelectorAll('.staff-combobox__item');
-        if (items.length === 0) return;
-        if (newIndex < 0) newIndex = items.length - 1;
-        if (newIndex >= items.length) newIndex = 0;
-        highlightIndex = newIndex;
-        items.forEach(function (el, idx) {
-            el.classList.toggle('is-highlighted', idx === highlightIndex);
-        });
-        var highlighted = items[highlightIndex];
-        if (highlighted && highlighted.scrollIntoView) {
-            highlighted.scrollIntoView({ block: 'nearest' });
-        }
-    }
-
-    function pick(staffMember) {
-        // Set the real form field.
-        workerSelect.value = staffMember.id;
-        // Show the chosen name in the visible input.
-        searchInput.value = staffMember.name;
-        closeResults();
-    }
-
-    function render(query) {
-        var q = query.trim().toLowerCase();
-
-        // Requirement: no dropdown on empty input — must type something first.
-        if (q === '') {
-            closeResults();
-            return;
-        }
-
-        visibleMatches = staff.filter(function (s) {
-            return s.name.toLowerCase().indexOf(q) !== -1;
-        });
-
-        if (visibleMatches.length === 0) {
-            resultsBox.innerHTML = '<div class="staff-combobox__empty">No staff match "' + escapeHtml(query) + '".</div>';
-            openResults();
-            highlightIndex = -1;
-            return;
-        }
-
-        resultsBox.innerHTML = visibleMatches.map(function (s, idx) {
-            return '<div class="staff-combobox__item" role="option" data-index="' + idx + '" data-id="' + escapeHtml(s.id) + '">'
-                + escapeHtml(s.name)
-                + '</div>';
-        }).join('');
-        openResults();
-        highlightIndex = -1;
-    }
-
-    // ---- Events ----
-
-    searchInput.addEventListener('input', function () {
-        // If the typed text no longer matches the currently-selected staff,
-        // clear the hidden select so the form can't silently submit a stale id.
-        var currentSelectedId = workerSelect.value;
-        if (currentSelectedId !== '') {
-            var stillMatches = false;
-            for (var i = 0; i < staff.length; i++) {
-                if (staff[i].id === currentSelectedId &&
-                    staff[i].name.toLowerCase() === searchInput.value.trim().toLowerCase()) {
-                    stillMatches = true;
-                    break;
-                }
-            }
-            if (!stillMatches) {
-                workerSelect.value = '';
-            }
-        }
-        render(searchInput.value);
-    });
-
-    searchInput.addEventListener('keydown', function (e) {
-        var isOpen = !resultsBox.hidden;
-        var items = isOpen ? resultsBox.querySelectorAll('.staff-combobox__item') : [];
-
-        if (e.key === 'ArrowDown') {
-            if (isOpen && items.length > 0) {
-                e.preventDefault();
-                setHighlight(highlightIndex + 1);
-            }
-        } else if (e.key === 'ArrowUp') {
-            if (isOpen && items.length > 0) {
-                e.preventDefault();
-                setHighlight(highlightIndex - 1);
-            }
-        } else if (e.key === 'Enter') {
-            if (isOpen) {
-                if (highlightIndex >= 0 && visibleMatches[highlightIndex]) {
-                    e.preventDefault();
-                    pick(visibleMatches[highlightIndex]);
-                } else if (items.length === 1 && visibleMatches[0]) {
-                    // Requirement: auto-pick when exactly one match and no highlight.
-                    e.preventDefault();
-                    pick(visibleMatches[0]);
-                }
-                // Otherwise: do nothing (don't submit the form by accident
-                // when the cashier just typed a partial name).
-            }
-        } else if (e.key === 'Escape') {
-            if (isOpen) {
-                e.preventDefault();
-                closeResults();
-            }
-        }
-    });
-
-    resultsBox.addEventListener('mousedown', function (e) {
-        // mousedown (not click) so the pick fires before input blur closes the list.
-        var item = e.target.closest('.staff-combobox__item');
-        if (!item) return;
-        e.preventDefault();
-        var idx = parseInt(item.getAttribute('data-index'), 10);
-        if (!isNaN(idx) && visibleMatches[idx]) {
-            pick(visibleMatches[idx]);
-        }
-    });
-
-    resultsBox.addEventListener('mousemove', function (e) {
-        var item = e.target.closest('.staff-combobox__item');
-        if (!item) return;
-        var items = resultsBox.querySelectorAll('.staff-combobox__item');
-        items.forEach(function (el, idx) {
-            if (el === item) {
-                highlightIndex = idx;
-                el.classList.add('is-highlighted');
-            } else {
-                el.classList.remove('is-highlighted');
-            }
-        });
-    });
-
-    // Click outside closes the list. Use mousedown on document so it runs
-    // even if the user clicks on a non-focusable area.
-    document.addEventListener('mousedown', function (e) {
-        if (!wrapper.contains(e.target)) {
-            closeResults();
-        }
-    });
-
-    // If the user tabs away with the input containing text that matches
-    // exactly one staff and no pick was made, do NOT auto-commit — that's
-    // the D3 "no auto-select on blur" rule. But if the input text no longer
-    // matches the selected staff, clearing the hidden select already happened
-    // on input — nothing more to do here.
-    searchInput.addEventListener('blur', function () {
-        // Small delay so a mousedown on a result can fire first.
-        setTimeout(function () {
-            if (!wrapper.contains(document.activeElement)) {
-                closeResults();
-            }
-        }, 120);
-    });
-});
-
-
 // Phase 4: the Reports filter form has a "Report Type" dropdown. Daily/
 // Weekly/Monthly all use a single "Date" field (it just means different
 // things depending on the type — e.g. for Weekly it picks which week).
@@ -524,7 +310,6 @@ document.addEventListener('DOMContentLoaded', function () {
         var posTotal = document.getElementById('posTotal');
         var tipsTotal = document.getElementById('tipsTotal');
         var commissionsTotal = document.getElementById('commissionsTotal');
-        var staffCommissionTipsToday = document.getElementById('staffCommissionTipsToday');
         var salonEarnings = document.getElementById('salonEarnings');
         
         if (cashTotal && summary.cash_total !== undefined) {
@@ -541,17 +326,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         if (commissionsTotal && summary.worker_commissions !== undefined) {
             commissionsTotal.textContent = '₦' + parseFloat(summary.worker_commissions).toFixed(2);
-        }
-        // Prefer the pre-computed staff_payout field from ReportModel::summary();
-        // fall back to summing the two parts by hand if it's missing (older
-        // cached response, or ReportModel not yet updated).
-        if (staffCommissionTipsToday) {
-            if (summary.staff_payout !== undefined) {
-                staffCommissionTipsToday.textContent = '₦' + parseFloat(summary.staff_payout).toFixed(2);
-            } else if (summary.worker_commissions !== undefined && summary.tips_total !== undefined) {
-                var combinedToday = parseFloat(summary.worker_commissions) + parseFloat(summary.tips_total);
-                staffCommissionTipsToday.textContent = '₦' + combinedToday.toFixed(2);
-            }
         }
         if (salonEarnings && summary.salon_earnings !== undefined) {
             salonEarnings.textContent = '₦' + parseFloat(summary.salon_earnings).toFixed(2);
@@ -597,19 +371,16 @@ document.addEventListener('DOMContentLoaded', function () {
         var workerTableBody = document.getElementById('workerTableBody');
         if (workerTableBody && data.data.workerPerformance) {
             if (data.data.workerPerformance.length === 0) {
-                workerTableBody.innerHTML = '<tr><td colspan="7" class="empty-row">No workers yet.</td></tr>';
+                workerTableBody.innerHTML = '<tr><td colspan="6" class="empty-row">No workers yet.</td></tr>';
             } else {
                 workerTableBody.innerHTML = data.data.workerPerformance.map(function (w) {
-                    var commission = parseFloat(w.commission);
-                    var tips = parseFloat(w.tips);
                     return '<tr>' +
                         '<td>' + escapeHtml(w.full_name) + '</td>' +
                         '<td>' + escapeHtml(w.branch_name) + '</td>' +
                         '<td>' + parseInt(w.record_count, 10) + '</td>' +
                         '<td class="amount">₦' + parseFloat(w.revenue).toFixed(2) + '</td>' +
-                        '<td class="amount">₦' + commission.toFixed(2) + '</td>' +
-                        '<td class="amount">₦' + tips.toFixed(2) + '</td>' +
-                        '<td class="amount">₦' + (commission + tips).toFixed(2) + '</td>' +
+                        '<td class="amount">₦' + parseFloat(w.commission).toFixed(2) + '</td>' +
+                        '<td class="amount">₦' + parseFloat(w.tips).toFixed(2) + '</td>' +
                         '</tr>';
                 }).join('');
             }
@@ -627,7 +398,6 @@ document.addEventListener('DOMContentLoaded', function () {
         var cashTotal = document.getElementById('cashTotal');
         var transferTotal = document.getElementById('transferTotal');
         var posTotal = document.getElementById('posTotal');
-        var staffCommissionTips = document.getElementById('staffCommissionTips');
         
         if (todayRecords && summary.record_count !== undefined) {
             todayRecords.textContent = summary.record_count || 0;
@@ -643,14 +413,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         if (posTotal && summary.pos_total !== undefined) {
             posTotal.textContent = '₦' + parseFloat(summary.pos_total).toFixed(2);
-        }
-        // Combined Staff Commissions + Tips — comes as two separate fields
-        // from TransactionModel::summaryForBranchToday(), summed here.
-        if (staffCommissionTips &&
-            summary.worker_commissions_total !== undefined &&
-            summary.tips_total !== undefined) {
-            var combined = parseFloat(summary.worker_commissions_total) + parseFloat(summary.tips_total);
-            staffCommissionTips.textContent = '₦' + combined.toFixed(2);
         }
     }
     
@@ -676,7 +438,6 @@ document.addEventListener('DOMContentLoaded', function () {
             var revenueEl = document.getElementById(period.prefix + 'Revenue');
             var commissionEl = document.getElementById(period.prefix + 'Commission');
             var tipsEl = document.getElementById(period.prefix + 'Tips');
-            var commissionTipsEl = document.getElementById(period.prefix + 'CommissionTips');
 
             if (salesEl && summary.record_count !== undefined) {
                 salesEl.textContent = summary.record_count || 0;
@@ -689,16 +450,6 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             if (tipsEl && summary.tips !== undefined) {
                 tipsEl.textContent = '₦' + parseFloat(summary.tips).toFixed(2);
-            }
-            // Combined card — prefer the pre-computed staff_payout field,
-            // fall back to summing commission + tips if it's absent.
-            if (commissionTipsEl) {
-                if (summary.staff_payout !== undefined) {
-                    commissionTipsEl.textContent = '₦' + parseFloat(summary.staff_payout).toFixed(2);
-                } else if (summary.commission !== undefined && summary.tips !== undefined) {
-                    var combinedOwn = parseFloat(summary.commission) + parseFloat(summary.tips);
-                    commissionTipsEl.textContent = '₦' + combinedOwn.toFixed(2);
-                }
             }
         });
     }
@@ -803,5 +554,319 @@ document.addEventListener('DOMContentLoaded', function () {
         if (window.innerWidth > 768 && navMenu.classList.contains('open')) {
             closeMenu();
         }
+    });
+});
+
+
+// ---------------------------------------------------------------------------
+// Quick Sale page (route: cashier/sales/quick)
+//
+// What this block does, in order:
+//   1. Search box  -> hides staff cards that don't match what was typed.
+//   2. Tap a card  -> slides the "record sale" sheet up with that worker filled in.
+//   3. Save        -> sends the form in the BACKGROUND (fetch), then closes the
+//                     sheet and updates that worker's card in place. No reload.
+//
+// Like the Combination toggle further up, this only controls what the cashier
+// SEES. The real validation is still CashierController::validateSale() on the
+// server, so nothing here is a security layer.
+// ---------------------------------------------------------------------------
+document.addEventListener('DOMContentLoaded', function () {
+    var page = document.getElementById('quickSale');
+    if (!page) {
+        return; // not on the quick-sale page
+    }
+
+    var search = document.getElementById('staffSearch');
+    var list = document.getElementById('staffList');
+    var noMatch = document.getElementById('staffNoMatch');
+    var toast = document.getElementById('qsToast');
+    var topbar = document.querySelector('.topbar');
+
+    var sheet = document.getElementById('qsSheet');       // null when the day is closed
+    var backdrop = document.getElementById('qsBackdrop');
+    var form = document.getElementById('qsForm');
+    var workerIdInput = document.getElementById('qsWorkerId');
+    var workerName = document.getElementById('qsWorkerName');
+    var amount = document.getElementById('qsAmount');
+    var method = document.getElementById('qsMethod');
+    var combo = document.getElementById('qsCombo');
+    var tip = document.getElementById('qsTip');
+    var note = document.getElementById('qsNote');
+    var errorBox = document.getElementById('qsError');
+    var saveBtn = document.getElementById('qsSave');
+    var closeBtn = document.getElementById('qsClose');
+
+    var cards = list ? Array.prototype.slice.call(list.querySelectorAll('.staff-card')) : [];
+    var lastCard = null;
+    var saving = false;
+    var toastTimer = null;
+
+    // --- Keep the search box pinned right under the sticky top bar ----------
+    function setTopbarHeight() {
+        if (topbar) {
+            document.documentElement.style.setProperty('--topbar-h', topbar.offsetHeight + 'px');
+        }
+    }
+    setTopbarHeight();
+    window.addEventListener('resize', setTopbarHeight);
+
+    // --- Formatting helpers --------------------------------------------------
+    function formatMoney(value) {
+        return '\u20A6' + Number(value).toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+    }
+
+    function showToast(message) {
+        if (!toast) { return; }
+        clearTimeout(toastTimer);
+        toast.textContent = message;
+        toast.hidden = false;
+        void toast.offsetWidth; // let the browser register "hidden" is gone before animating
+        toast.classList.add('is-visible');
+        toastTimer = setTimeout(function () {
+            toast.classList.remove('is-visible');
+            setTimeout(function () { toast.hidden = true; }, 250);
+        }, 2600);
+    }
+
+    // --- 1. Search -----------------------------------------------------------
+    function applyFilter() {
+        if (!search) { return; }
+        var term = search.value.trim().toLowerCase();
+        var visible = 0;
+
+        cards.forEach(function (card) {
+            var name = (card.getAttribute('data-worker-name') || '').toLowerCase();
+            var match = term === '' || name.indexOf(term) !== -1;
+            card.hidden = !match;
+            if (match) { visible++; }
+        });
+
+        if (noMatch) { noMatch.hidden = visible !== 0; }
+    }
+
+    if (search) {
+        search.addEventListener('input', applyFilter);
+
+        // Pressing Enter/Go on the phone keyboard opens the first match, so a
+        // cashier can type "eme" and hit Enter without lifting a finger to tap.
+        search.addEventListener('keydown', function (e) {
+            if (e.key !== 'Enter') { return; }
+            e.preventDefault();
+            var first = cards.filter(function (c) { return !c.hidden && !c.disabled; })[0];
+            if (first) { first.click(); }
+        });
+    }
+
+    // --- Sheet helpers -------------------------------------------------------
+    if (!sheet || !form) {
+        return; // day is closed: cards are disabled, so there's no sheet to wire up
+    }
+
+    function showError(message) {
+        if (!message) {
+            errorBox.hidden = true;
+            errorBox.textContent = '';
+            return;
+        }
+        errorBox.textContent = message;
+        errorBox.hidden = false;
+        // Make sure the message is in view even if the sheet was scrolled.
+        errorBox.scrollIntoView({ block: 'nearest' });
+    }
+
+    function setSaving(isSaving) {
+        saving = isSaving;
+        saveBtn.disabled = isSaving;
+        saveBtn.textContent = isSaving ? 'Saving...' : 'Save Sale';
+    }
+
+    function updateComboVisibility() {
+        var isCombination = method.value === 'combination';
+        combo.hidden = !isCombination;
+
+        if (!isCombination) {
+            // Same rule as the old form: hidden boxes go back to 0 so a stale
+            // value can't sneak into a cash/transfer/pos sale.
+            combo.querySelectorAll('input[type="number"]').forEach(function (input) {
+                input.value = '0';
+            });
+        }
+    }
+    method.addEventListener('change', updateComboVisibility);
+
+    function resetForm() {
+        amount.value = '';
+        method.value = 'transfer'; // default payment method
+        tip.value = '';
+        note.value = '';
+        updateComboVisibility();
+        showError('');
+        setSaving(false);
+    }
+
+    // When the phone keyboard opens, the browser's "visual viewport" gets
+    // shorter. We lift the sheet above the keyboard and cap its height, so the
+    // Save button never ends up hidden behind the keys.
+    function fitSheet() {
+        var vv = window.visualViewport;
+        if (!vv || sheet.hidden) { return; }
+        var covered = window.innerHeight - vv.height - vv.offsetTop;
+        sheet.style.bottom = Math.max(0, covered) + 'px';
+        sheet.style.maxHeight = Math.floor(vv.height - 12) + 'px';
+    }
+
+    if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', fitSheet);
+        window.visualViewport.addEventListener('scroll', fitSheet);
+    }
+
+    // --- 2. Open / close the sheet -------------------------------------------
+    function openSheet(card) {
+        lastCard = card;
+        workerIdInput.value = card.getAttribute('data-worker-id');
+        workerName.textContent = card.getAttribute('data-worker-name');
+        resetForm();
+
+        backdrop.hidden = false;
+        sheet.hidden = false;
+        void sheet.offsetWidth; // so the slide-up animation actually plays
+        backdrop.classList.add('is-open');
+        sheet.classList.add('is-open');
+        document.body.style.overflow = 'hidden';
+        fitSheet();
+
+        // Focus inside the tap handler so the phone opens the number keypad.
+        amount.focus({ preventScroll: true });
+    }
+
+    function closeSheet(returnFocus) {
+        if (saving) { return; } // don't abandon a save that's in flight
+
+        sheet.classList.remove('is-open');
+        backdrop.classList.remove('is-open');
+        document.body.style.overflow = '';
+
+        setTimeout(function () {
+            if (!sheet.classList.contains('is-open')) {
+                sheet.hidden = true;
+                backdrop.hidden = true;
+                sheet.style.bottom = '';
+                sheet.style.maxHeight = '';
+            }
+        }, 260);
+
+        if (returnFocus && lastCard) { lastCard.focus(); }
+    }
+
+    cards.forEach(function (card) {
+        card.addEventListener('click', function () { openSheet(card); });
+    });
+    closeBtn.addEventListener('click', function () { closeSheet(true); });
+    backdrop.addEventListener('click', function () { closeSheet(true); });
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && sheet.classList.contains('is-open')) {
+            closeSheet(true);
+        }
+    });
+
+    // --- 3. Save in the background -------------------------------------------
+    function updateCard(worker) {
+        var card = list.querySelector('.staff-card[data-worker-id="' + worker.id + '"]');
+        if (!card) { return; }
+
+        card.querySelector('.js-count').textContent = worker.sale_count;
+        card.querySelector('.js-count-label').textContent = Number(worker.sale_count) === 1 ? 'sale' : 'sales';
+        card.querySelector('.js-revenue').textContent = formatMoney(worker.revenue);
+
+        // Brief green flash so the cashier SEES which card changed.
+        card.classList.add('is-updated');
+        setTimeout(function () { card.classList.remove('is-updated'); }, 1600);
+    }
+
+    // Builds an Error that carries a message safe to show the cashier.
+    function userError(message, extra) {
+        var err = new Error(message);
+        err.userMessage = message;
+        if (extra) { err.sessionExpired = !!extra.sessionExpired; }
+        return err;
+    }
+
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        if (saving) { return; } // a double-tap on Save must never send twice
+
+        showError('');
+
+        var amountValue = parseFloat(amount.value);
+        if (!(amountValue > 0)) {
+            showError('Enter an amount greater than zero.');
+            amount.focus();
+            return;
+        }
+
+        var savedName = workerName.textContent;
+        setSaving(true);
+
+        fetch(page.getAttribute('data-submit-url'), {
+            method: 'POST',
+            body: new FormData(form),
+            credentials: 'same-origin',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        })
+        .then(function (response) {
+            var type = response.headers.get('content-type') || '';
+            var isJson = type.indexOf('application/json') !== -1;
+
+            // Session expired: the server redirected us to the login chooser.
+            if (response.redirected && !isJson) {
+                throw userError('Your session has expired. Taking you to log in...', { sessionExpired: true });
+            }
+            // Security token expired: PHP answers with plain text and status 419.
+            if (response.status === 419) {
+                throw userError('This page has expired. Refresh the page and try again.');
+            }
+            if (!isJson) {
+                throw userError('Unexpected reply from the server. Check Today\'s Records before trying again.');
+            }
+            return response.json();
+        })
+        .then(function (data) {
+            if (!data.success) {
+                throw userError(data.error || 'Could not save the sale. Please try again.');
+            }
+
+            setSaving(false);
+            if (data.worker) { updateCard(data.worker); }
+            closeSheet(false);
+
+            // Fresh start for the next customer: clear the search, show everyone.
+            if (search) { search.value = ''; applyFilter(); }
+
+            showToast('Saved \u2713 ' + formatMoney(amountValue) + ' for ' + savedName);
+        })
+        .catch(function (err) {
+            setSaving(false);
+
+            if (err && err.sessionExpired) {
+                showError(err.userMessage);
+                setTimeout(function () {
+                    window.location.href = page.getAttribute('data-login-url');
+                }, 1500);
+                return;
+            }
+
+            // userMessage exists for errors we raised ourselves; anything else
+            // (e.g. no signal) is a network failure.
+            showError(err && err.userMessage
+                ? err.userMessage
+                : 'Could not reach the server. Check your connection, then check Today\'s Records before trying again.');
+        });
     });
 });

@@ -211,6 +211,27 @@ class CashierController
         exit;
     }
 
+    /**
+     * The everyday "Record Sale" screen: one card per active worker in the
+     * cashier's branch, tap a card to record a sale in a bottom-sheet popup.
+     * Page only — the popup posts to saleSubmit() below, same as the old form.
+     */
+    public function quickSale(): void
+    {
+        Auth::requireCashier();
+        $this->redirectIfMustChangePassword();
+        $branchId = $this->currentBranchId();
+
+        $pageTitle = 'Record Sale';
+        $today = date('Y-m-d');
+        $isTodayClosed = ClosureModel::isClosed($branchId, $today);
+        $workers = $this->workersWithStats($branchId, $today);
+
+        require __DIR__ . '/../views/layouts/header.php';
+        require __DIR__ . '/../views/cashier/record-sale.php';
+        require __DIR__ . '/../views/layouts/footer.php';
+    }
+
     public function saleForm(): void
     {
         Auth::requireCashier();
@@ -239,6 +260,12 @@ class CashierController
         [$valid, $data, $errorMsg] = $this->validateSale($_POST);
 
         if (!$valid) {
+            // Quick-sale popup (background request): answer with JSON so the
+            // popup can show the message without leaving the page.
+            if ($this->isAjax()) {
+                $this->jsonReply(['success' => false, 'error' => $errorMsg], 422);
+            }
+
             // IMPORTANT: we redisplay the form right here, in the same request,
             // instead of redirecting. A redirect throws away $_POST entirely —
             // that's what was making an earlier error message confusing:
@@ -254,7 +281,13 @@ class CashierController
         // that's ALLOWED right now is this controller's job.
         if (ClosureModel::isClosed($branchId, $data['business_date'])) {
             $dayLabel = $data['business_date'] === date('Y-m-d') ? 'Today' : $data['business_date'];
-            Session::flash('sale_error', "{$dayLabel} is already closed. Ask your Admin to reopen it if you need to record more sales for that day.");
+            $closedMsg = "{$dayLabel} is already closed. Ask your Admin to reopen it if you need to record more sales for that day.";
+
+            if ($this->isAjax()) {
+                $this->jsonReply(['success' => false, 'error' => $closedMsg], 422);
+            }
+
+            Session::flash('sale_error', $closedMsg);
             header('Location: ' . APP_URL . '/index.php?route=cashier/sales');
             exit;
         }
@@ -272,6 +305,29 @@ class CashierController
         );
 
         AuditLog::record('record_sale', "Recorded sale #{$transactionId} for ₦{$data['amount_made']} (business date {$data['business_date']})");
+
+        // Quick-sale popup: reply with the worker's fresh numbers so the card
+        // on the page can update in place, no reload needed.
+        if ($this->isAjax()) {
+            $stats = $this->workersWithStats($branchId, $data['business_date']);
+            $worker = null;
+            foreach ($stats as $w) {
+                if ((int) $w['id'] === $data['worker_id']) {
+                    $worker = [
+                        'id' => (int) $w['id'],
+                        'sale_count' => $w['sale_count'],
+                        'revenue' => $w['revenue'],
+                    ];
+                    break;
+                }
+            }
+            $this->jsonReply([
+                'success' => true,
+                'message' => 'Sale recorded.',
+                'worker' => $worker,
+            ]);
+        }
+
         Session::flash('sale_success', 'Sale recorded.');
 
         $redirectUrl = APP_URL . '/index.php?route=cashier/sales';
@@ -381,6 +437,46 @@ class CashierController
     }
 
     /**
+     * Active workers of a branch, each with that day's sale_count and revenue.
+     * Starts from the ACTIVE worker list (so disabled workers never show up)
+     * and layers ReportModel::workerPerformance() numbers on top. Workers with
+     * no sales that day get 0 / 0.00 instead of vanishing.
+     */
+    private function workersWithStats(int $branchId, string $date): array
+    {
+        $statsById = [];
+        foreach (ReportModel::workerPerformance($date, $date, $branchId) as $row) {
+            $statsById[(int) $row['id']] = $row;
+        }
+
+        $workers = WorkerModel::allActiveByBranch($branchId);
+        foreach ($workers as &$w) {
+            $row = $statsById[(int) $w['id']] ?? null;
+            $w['sale_count'] = $row ? (int) $row['record_count'] : 0;
+            $w['revenue'] = $row ? (float) $row['revenue'] : 0.0;
+        }
+        unset($w);
+
+        return $workers;
+    }
+
+    /** True for background (fetch) requests — the quick-sale popup sends this header. */
+    private function isAjax(): bool
+    {
+        return !empty($_SERVER['HTTP_X_REQUESTED_WITH'])
+            && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+    }
+
+    /** Sends a JSON reply and stops. */
+    private function jsonReply(array $payload, int $status = 200): void
+    {
+        http_response_code($status);
+        header('Content-Type: application/json');
+        echo json_encode($payload);
+        exit;
+    }
+
+    /**
      * PDF export for the cashier's own branch report — reuses
      * ReportController::buildPdf(), the exact same layout Admin's export
      * uses, just always with $branchBreakdown = null since a cashier is
@@ -461,19 +557,13 @@ class CashierController
         require __DIR__ . '/../views/layouts/footer.php';
     }
 
-        /**
+    /**
      * Shared validation for create + edit sale forms.
      * Returns [isValid, cleanedData, errorMessage].
      * $data['business_date'] is only meaningful for CREATE (edit never
      * changes which day a record belongs to) but is always computed here
      * for consistency — callers that don't need it (editSaleSubmit) just
      * ignore it.
-     *
-     * Tips-only sales are allowed: amount_made may be 0 as long as
-     * tip_amount is greater than 0. In that case the payment method and
-     * channel split are irrelevant (they describe how the SALE amount
-     * moved, and there is no sale amount) — so we zero the channel split
-     * and skip the combination-sum check regardless of method.
      */
     private function validateSale(array $post): array
     {
@@ -489,11 +579,8 @@ class CashierController
         if ($workerId <= 0) {
             return [false, [], 'Please select a staff member.'];
         }
-        if ($amountMade < 0) {
-            return [false, [], 'Amount made cannot be negative.'];
-        }
-        if ($amountMade == 0 && $tipAmount == 0) {
-            return [false, [], 'A sale must have an amount made, a tip, or both.'];
+        if ($amountMade <= 0) {
+            return [false, [], 'Amount made must be greater than zero.'];
         }
         if (!in_array($paymentMethod, $validMethods, true)) {
             return [false, [], 'Please select a valid payment method.'];
@@ -502,13 +589,8 @@ class CashierController
             return [false, [], 'Tip cannot be negative.'];
         }
 
-        // Tips-only: no sale amount to split, so the channel amounts are
-        // all zero and the combination-sum check is skipped. The chosen
-        // payment method is still stored (as-is) for record-keeping.
-        if ($amountMade == 0) {
-            $amounts = ['cash' => 0.0, 'transfer' => 0.0, 'pos' => 0.0];
-        } elseif ($paymentMethod === 'combination') {
-            // Figure out how amount_made splits across cash/transfer/pos.
+        // Figure out how amount_made splits across cash/transfer/pos.
+        if ($paymentMethod === 'combination') {
             $cash = (float) ($post['combo_cash'] ?? 0);
             $transfer = (float) ($post['combo_transfer'] ?? 0);
             $pos = (float) ($post['combo_pos'] ?? 0);

@@ -24,7 +24,7 @@
         <div class="content-header">
             <h1>Welcome, <?php echo htmlspecialchars(Session::get('user_name')); ?></h1>
             <?php if (!$isTodayClosed): ?>
-                <a class="btn btn--primary btn--small" href="<?php echo APP_URL; ?>/index.php?route=cashier/sales/create">+ Record Sale</a>
+                <a class="btn btn--primary btn--small" href="<?php echo APP_URL; ?>/index.php?route=cashier/sales/quick">+ Record Sale</a>
             <?php else: ?>
                 <span class="badge badge--muted" id="todayStatus">Today's Day Is Closed</span>
             <?php endif; ?>

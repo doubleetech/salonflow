@@ -99,6 +99,7 @@ $router->get('cashier/choose-branch', ['CashierController', 'chooseBranchForm'])
 $router->post('cashier/choose-branch', ['CashierController', 'chooseBranchSubmit']);
 
 $router->get('cashier/sales', ['CashierController', 'todayRecords']);
+$router->get('cashier/sales/quick', ['CashierController', 'quickSale']);
 $router->get('cashier/sales/create', ['CashierController', 'saleForm']);
 $router->post('cashier/sales/create', ['CashierController', 'saleSubmit']);
 $router->get('cashier/sales/edit', ['CashierController', 'editSaleForm']);

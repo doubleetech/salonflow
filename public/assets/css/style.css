@@ -27,7 +27,7 @@
     --font-display: 'Spectral', Georgia, serif;
     --font-body: 'Work Sans', system-ui, -apple-system, sans-serif;
     --font-mono: 'IBM Plex Mono', 'Courier New', monospace;
-
+    
     --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -58,14 +58,14 @@ h1 { font-size: 32px; line-height: 1.2; }
 h2 { font-size: 24px; line-height: 1.3; }
 h3 { font-size: 20px; line-height: 1.4; }
 
-a {
+a { 
     color: var(--color-brass-dark);
     text-decoration: none;
     transition: all var(--transition);
     font-weight: 500;
 }
 
-a:hover {
+a:hover { 
     color: var(--color-brass);
 }
 
@@ -123,6 +123,7 @@ a:hover {
     font-size: 14px;
     color: var(--color-ink-soft);
     flex-wrap: wrap;
+    padding: 4px 8px;
     background: var(--color-paper);
     border-radius: 50px;
     padding: 6px 16px 6px 20px;
@@ -195,6 +196,7 @@ a:hover {
     transform-origin: center;
 }
 
+/* Hamburger animation - open state */
 .nav-toggle.active .nav-toggle__bar:nth-child(1) {
     transform: rotate(45deg) translate(5px, 5px);
     background: var(--color-brass);
@@ -390,8 +392,8 @@ a:hover {
     overflow-x: hidden;
 }
 
-.content--narrow {
-    max-width: 640px;
+.content--narrow { 
+    max-width: 640px; 
 }
 
 /* ---------- Content Header ---------- */
@@ -722,7 +724,7 @@ select[multiple] {
     align-items: flex-end;
 }
 
-.panel-form .filter-row > div {
+.panel-form .filter-row > div { 
     flex: 1;
     min-width: 180px;
 }
@@ -889,8 +891,8 @@ select[multiple] {
 }
 
 .data-table tr:last-child td { border-bottom: none; }
-.data-table tr:hover td {
-    background: rgba(169, 129, 45, 0.04);
+.data-table tr:hover td { 
+    background: rgba(169, 129, 45, 0.04); 
 }
 
 .data-table .amount {
@@ -1111,20 +1113,11 @@ select[multiple] {
     align-items: center;
     justify-content: center;
     padding: 24px;
-
-    /* Ribbon background — image lives at assets/images/green-white-ribbon.jpg
-       relative to assets/css/style.css */
-    background-color: var(--color-paper);
-    background-image: url("../images/green-white-ribbon.jpg");
-    background-repeat: no-repeat;
-    background-position: center center;
-    background-size: cover;
+    background: var(--color-paper);
 }
 
 .auth-card {
-    background: rgba(251, 252, 250, 0.92);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
+    background: var(--color-surface);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-xl);
     box-shadow: var(--shadow), var(--shadow-drop);
@@ -1247,7 +1240,7 @@ select[multiple] {
         flex-direction: row;
         gap: 16px;
     }
-
+    
     .role-btn {
         flex: 1;
         flex-direction: column;
@@ -1256,11 +1249,11 @@ select[multiple] {
         gap: 14px;
         border-radius: var(--radius-xl);
     }
-
+    
     .role-btn:hover {
         transform: translateY(-6px);
     }
-
+    
     .role-btn__icon {
         width: 60px;
         height: 60px;
@@ -1272,35 +1265,35 @@ select[multiple] {
 @media (max-width: 768px) {
     h1 { font-size: 26px; }
     h2 { font-size: 22px; }
-
+    
     .topbar {
         padding: 12px 18px;
         flex-direction: column;
         align-items: stretch;
         gap: 12px;
     }
-
+    
     .topbar__left {
         justify-content: center;
     }
-
+    
     .topbar__brand {
         font-size: 20px;
         justify-content: center;
     }
-
+    
     .topbar__user {
         justify-content: center;
         padding: 6px 12px;
         border-radius: 30px;
         width: 100%;
     }
-
+    
     .topbar__user .link-muted {
         padding: 4px 12px;
         font-size: 12px;
     }
-
+    
     .nav-toggle {
         display: flex;
         right: 16px;
@@ -1325,26 +1318,27 @@ select[multiple] {
         border-right: 2px solid var(--color-border);
         border-bottom: none;
     }
-
+    
     .admin-nav.open,
     .cashier-nav.open,
     .worker-nav.open {
         left: 0;
     }
-
+    
+    /* Show close button when sidebar is open */
     .admin-nav.open .nav-close,
     .cashier-nav.open .nav-close,
     .worker-nav.open .nav-close {
         display: flex;
     }
-
+    
     .nav-menu-inner {
         flex-direction: column;
         padding: 72px 20px 20px;
         gap: 4px;
         width: 100%;
     }
-
+    
     .admin-nav__link,
     .cashier-nav__link,
     .worker-nav__link {
@@ -1355,7 +1349,7 @@ select[multiple] {
         width: 100%;
         gap: 14px;
     }
-
+    
     .admin-nav__link i,
     .cashier-nav__link i,
     .worker-nav__link i {
@@ -1364,20 +1358,20 @@ select[multiple] {
         text-align: center;
         opacity: 0.8;
     }
-
+    
     .admin-nav__link::after,
     .cashier-nav__link::after,
     .worker-nav__link::after {
         display: none;
     }
-
+    
     .admin-nav__link:hover,
     .cashier-nav__link:hover,
     .worker-nav__link:hover {
         background: rgba(169, 129, 45, 0.08);
         transform: none;
     }
-
+    
     .admin-nav__link--active,
     .cashier-nav__link--active,
     .worker-nav__link--active {
@@ -1385,36 +1379,37 @@ select[multiple] {
         border-radius: var(--radius-sm);
         color: var(--color-brass-dark);
     }
-
+    
     .admin-nav__link--active i,
     .cashier-nav__link--active i,
     .worker-nav__link--active i {
         color: var(--color-brass);
     }
-
-    .content {
-        padding: 20px 16px;
+    
+    .content { 
+        padding: 20px 16px; 
         overflow-x: hidden;
     }
-
+    
     .content-header {
         flex-direction: column;
         align-items: stretch;
         gap: 12px;
     }
-
+    
     .content-header h1 { font-size: 24px; }
     .content-header .btn { width: 100%; justify-content: center; }
     .content-header .badge { align-self: flex-start; }
-
+    
     .panel-form {
         padding: 24px 20px;
     }
-
+    
     .panel-form .filter-row > div { min-width: 100%; }
     .panel-form .filter-actions { flex-direction: column; }
     .panel-form .filter-actions .btn { width: 100%; min-width: unset; }
-
+    
+    /* Table wrapper for mobile */
     .table-wrapper {
         margin: 16px -16px 0 -16px;
         border-radius: 0;
@@ -1422,44 +1417,36 @@ select[multiple] {
         border-right: none;
         max-width: none;
     }
-
+    
     .table-wrapper .data-table {
         min-width: 500px;
     }
-
+    
     .data-table th,
-    .data-table td {
-        padding: 10px 14px;
+    .data-table td { 
+        padding: 10px 14px; 
         font-size: 13px;
         white-space: nowrap;
     }
-
+    
     .card-grid {
         grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
         gap: 12px;
     }
-
+    
     .stat-card { padding: 18px; }
     .stat-card__value { font-size: 22px; }
     .stat-card--tips .stat-card__value { font-size: 24px; }
-
+    
     .btn { min-height: 44px; padding: 10px 20px; font-size: 14px; }
-
-    .auth-screen {
-        background-size: cover;
-        background-position: center center;
-    }
-
-    .auth-card {
-        background: rgba(251, 252, 250, 0.94);
-        padding: 32px 24px;
-    }
-
+    
+    .auth-card { padding: 32px 24px; }
+    
     .link-back {
         width: 100%;
         justify-content: center;
     }
-
+    
     .notice {
         padding: 16px 18px;
         font-size: 13px;
@@ -1469,100 +1456,101 @@ select[multiple] {
 @media (max-width: 480px) {
     .topbar__brand { font-size: 17px; }
     .topbar__user { font-size: 12px; gap: 10px; }
-
-    .content {
-        padding: 16px 12px;
+    
+    .content { 
+        padding: 16px 12px; 
         overflow-x: hidden;
     }
-
+    
     .content-header h1 { font-size: 20px; }
-
+    
     .panel-form {
         padding: 18px 16px;
     }
-
+    
     .panel-form label {
         font-size: 11px;
     }
-
+    
     .panel-form input,
     .panel-form select,
     .panel-form textarea {
         padding: 12px 14px;
         font-size: 14px;
     }
-
+    
+    /* Table wrapper for mobile */
     .table-wrapper {
         margin: 16px -12px 0 -12px;
     }
-
+    
     .table-wrapper .data-table {
         min-width: 400px;
     }
-
+    
     .data-table th,
-    .data-table td {
-        padding: 8px 10px;
-        font-size: 12px;
+    .data-table td { 
+        padding: 8px 10px; 
+        font-size: 12px; 
     }
-
-    .btn {
-        min-height: 40px;
-        padding: 8px 16px;
-        font-size: 13px;
+    
+    .btn { 
+        min-height: 40px; 
+        padding: 8px 16px; 
+        font-size: 13px; 
     }
-
-    .badge {
-        font-size: 10px;
-        padding: 3px 10px;
+    
+    .badge { 
+        font-size: 10px; 
+        padding: 3px 10px; 
     }
-
+    
     .card-grid {
         grid-template-columns: 1fr 1fr;
         gap: 10px;
     }
-
+    
     .stat-card { padding: 14px; }
     .stat-card__value { font-size: 18px; }
     .stat-card--tips .stat-card__value { font-size: 20px; }
     .stat-card--tips { border-width: 2px; }
-
+    
     .auth-card { padding: 24px 18px; }
-
+    
     .role-btn {
         padding: 14px 16px;
         gap: 12px;
     }
-
+    
     .role-btn__icon {
         width: 42px;
         height: 42px;
         font-size: 16px;
     }
-
+    
     .heartbeat-indicator { font-size: 11px; padding: 4px 12px; }
-
+    
     .link-back {
         font-size: 13px;
         padding: 8px 14px;
     }
-
+    
     .notice {
         padding: 14px 16px;
         font-size: 12px;
     }
-
+    
     .admin-nav,
     .cashier-nav,
     .worker-nav {
         width: 260px;
         padding: 0;
     }
-
+    
     .nav-menu-inner {
         padding: 64px 16px 16px;
     }
-
+    
     .admin-nav__link,
     .cashier-nav__link,
     .worker-nav__link {
@@ -1570,33 +1558,24 @@ select[multiple] {
         font-size: 14px;
         gap: 12px;
     }
-
+    
     .admin-nav__link i,
     .cashier-nav__link i,
     .worker-nav__link i {
         font-size: 16px;
         width: 20px;
     }
-
+    
     .nav-close {
         top: 12px;
         right: 12px;
         width: 32px;
         height: 32px;
     }
-
+    
     .nav-close__bar {
         width: 14px;
         height: 2px;
-    }
-}
-
-/* ---------- Desktop-only fixed background ---------- */
-/* background-attachment: fixed is unreliable on mobile (especially iOS),
-   so it is applied only on wider viewports. */
-@media (min-width: 769px) {
-    .auth-screen {
-        background-attachment: fixed;
     }
 }
 
@@ -1611,75 +1590,325 @@ select[multiple] {
     }
 }
 
-/* ---------- Staff Combobox (sale form search) ---------- */
-.staff-combobox {
-    position: relative;
+
+/* ---------- Quick Sale page (cashier/sales/quick) ---------- */
+
+/* .content hides horizontal overflow, which would also stop the search box from
+   sticking while the page scrolls, so this page turns that off. */
+.quick-sale {
+    max-width: 1000px;
+    overflow: visible;
+}
+
+/* display:flex/grid below would otherwise win over the [hidden] attribute. */
+.quick-sale [hidden],
+.qs-sheet[hidden],
+.qs-backdrop[hidden],
+.qs-toast[hidden] {
+    display: none !important;
+}
+
+/* Search box: stays visible right under the top bar while scrolling.
+   --topbar-h is measured by app.js. */
+.quick-search {
+    position: sticky;
+    top: var(--topbar-h, 72px);
+    z-index: 50;
+    margin: 16px 0 14px;
+    padding: 8px 0;
+    background: var(--color-paper);
+}
+
+.quick-search i {
+    position: absolute;
+    left: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--color-ink-soft);
+    pointer-events: none;
+}
+
+.quick-search input {
     width: 100%;
-}
-
-.staff-combobox__native {
-    /* Visually hide the real <select> but keep it in the form + accessibility tree
-       is handled by aria-hidden="true" on the element itself. Do NOT use
-       display:none — some browsers drop the value from submission in rare
-       cases when a select is display:none. */
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
-}
-
-.staff-combobox__results {
-    position: absolute;
-    top: calc(100% + 4px);
-    left: 0;
-    right: 0;
-    max-height: 260px;
-    overflow-y: auto;
-    background: var(--color-surface);
+    padding: 16px 18px 16px 46px;
     border: 2px solid var(--color-border);
     border-radius: var(--radius-sm);
-    box-shadow: var(--shadow-drop);
-    z-index: 50;
-    padding: 4px;
-}
-
-.staff-combobox__item {
-    padding: 10px 14px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 15px;
+    font-size: 16px; /* 16px stops iPhones zooming in on focus */
+    font-family: var(--font-body);
+    background: var(--color-surface);
     color: var(--color-ink);
-    transition: background 0.12s ease;
-    user-select: none;
+    -webkit-appearance: none;
+    appearance: none;
 }
 
-.staff-combobox__item:hover,
-.staff-combobox__item.is-highlighted {
-    background: rgba(169, 129, 45, 0.10);
-    color: var(--color-brass-dark);
+.quick-search input:focus {
+    outline: none;
+    border-color: var(--color-brass);
+    box-shadow: var(--shadow-focus);
 }
 
-.staff-combobox__empty {
-    padding: 12px 14px;
-    font-size: 14px;
+/* Staff cards: one per row on phones, a grid on bigger screens. */
+.staff-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+}
+
+.staff-card {
+    -webkit-appearance: none;
+    appearance: none;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    min-height: 76px;
+    padding: 14px 16px 14px 20px;
+    text-align: left;
+    font-family: var(--font-body);
+    color: var(--color-ink);
+    background: var(--color-surface);
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    transition: all var(--transition);
+    -webkit-tap-highlight-color: transparent;
+}
+
+.staff-card:hover {
+    border-color: var(--color-brass);
+    box-shadow: var(--shadow-hover);
+}
+
+.staff-card:active {
+    transform: scale(0.99);
+}
+
+.staff-card:focus-visible {
+    outline: none;
+    border-color: var(--color-brass);
+    box-shadow: var(--shadow-focus);
+}
+
+.staff-card[disabled] {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.staff-card__name {
+    flex: 1;
+    min-width: 0;
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 1.25;
+    color: var(--color-bottle);
+    word-break: break-word;
+}
+
+.staff-card__stats {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+    font-size: 13px;
     color: var(--color-ink-soft);
-    font-style: italic;
+    white-space: nowrap;
+}
+
+.staff-card__revenue {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-bottle);
+}
+
+.staff-card__add {
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--color-bottle);
+    color: var(--color-paper);
+    font-size: 14px;
+}
+
+/* Green flash on the card that just got a new sale. */
+.staff-card.is-updated {
+    border-color: var(--color-success);
+    background: var(--color-success-bg);
+}
+
+@media (min-width: 700px) {
+    .staff-list { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (min-width: 1000px) {
+    .staff-list { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* Bottom sheet (the popup). z-index sits above the top bar and nav. */
+.qs-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 300;
+    background: rgba(36, 50, 42, 0.5);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.qs-backdrop.is-open { opacity: 1; }
+
+.qs-sheet {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 301;
+    width: 100%;
+    max-width: 560px;
+    margin: 0 auto;
+    max-height: 92vh;
+    max-height: 92dvh;
+    display: flex;
+    flex-direction: column;
+    background: var(--color-surface);
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    box-shadow: 0 -12px 48px rgba(36, 50, 42, 0.18);
+    transform: translateY(100%);
+    transition: transform 0.25s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.qs-sheet.is-open { transform: translateY(0); }
+
+.qs-sheet__header {
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 18px 20px 12px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.qs-sheet__eyebrow {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-ink-soft);
+}
+
+.qs-sheet__title {
+    font-family: var(--font-display);
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 1.2;
+    color: var(--color-bottle);
+}
+
+.qs-sheet__close {
+    flex: none;
+    width: 44px;
+    height: 44px;
+    border: none;
+    border-radius: 50%;
+    background: var(--color-paper);
+    color: var(--color-ink-soft);
+    font-size: 18px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* The form is split in two: scrolling fields on top, Save pinned underneath,
+   so Save is always reachable even with the keyboard open. */
+.qs-form {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.qs-fields {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    padding: 16px 20px;
+}
+
+.qs-fields label:first-of-type { margin-top: 0; }
+
+.qs-sheet input,
+.qs-sheet select,
+.qs-sheet textarea {
+    font-size: 16px; /* stops iPhones zooming in on focus */
+}
+
+#qsAmount {
+    font-family: var(--font-mono);
+    font-size: 24px;
+    padding: 16px 18px;
+}
+
+.qs-sheet input[type="number"] { -moz-appearance: textfield; }
+.qs-sheet input[type="number"]::-webkit-outer-spin-button,
+.qs-sheet input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.qs-combo label { margin-top: 14px; }
+
+.qs-actions {
+    flex: none;
+    padding: 12px 20px calc(14px + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid var(--color-border);
+    background: var(--color-surface);
+}
+
+.qs-actions .btn:disabled {
+    opacity: 0.7;
+    cursor: wait;
+}
+
+/* "Saved" confirmation, just under the top bar. */
+.qs-toast {
+    position: fixed;
+    left: 50%;
+    top: calc(var(--topbar-h, 72px) + 12px);
+    transform: translate(-50%, -12px);
+    z-index: 400;
+    max-width: calc(100% - 32px);
+    padding: 14px 20px;
+    border-radius: var(--radius-sm);
+    background: var(--color-success);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
     text-align: center;
+    box-shadow: var(--shadow-hover);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
-/* On mobile, keep the list from running off the bottom of the screen */
-@media (max-width: 768px) {
-    .staff-combobox__results {
-        max-height: 200px;
-    }
-    .staff-combobox__item {
-        padding: 12px 14px;
-        font-size: 16px; /* larger tap target */
-    }
+.qs-toast.is-visible {
+    opacity: 1;
+    transform: translate(-50%, 0);
 }
 
+
+/* Phones: the global rule makes header buttons full-width. Here that would put a
+   big bar above the search box, so keep "Record a past sale" small. */
+.quick-sale .content-header .btn {
+    width: auto;
+    min-height: 40px;
+    padding: 8px 16px;
+    font-size: 14px;
+}

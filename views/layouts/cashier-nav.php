@@ -15,7 +15,7 @@ function cashierNavClass($matchRoutes, $current) {
         <a class="<?php echo cashierNavClass('cashier/dashboard', $currentRoute); ?>" href="<?php echo APP_URL; ?>/index.php?route=cashier/dashboard">
             <i class="fas fa-chart-pie"></i> Dashboard
         </a>
-        <a class="<?php echo cashierNavClass('cashier/sales/create', $currentRoute); ?>" href="<?php echo APP_URL; ?>/index.php?route=cashier/sales/create">
+        <a class="<?php echo cashierNavClass(['cashier/sales/quick', 'cashier/sales/create'], $currentRoute); ?>" href="<?php echo APP_URL; ?>/index.php?route=cashier/sales/quick">
             <i class="fas fa-plus-circle"></i> Record Sale
         </a>
         <a class="<?php echo cashierNavClass(['cashier/sales', 'cashier/sales/edit'], $currentRoute); ?>" href="<?php echo APP_URL; ?>/index.php?route=cashier/sales">

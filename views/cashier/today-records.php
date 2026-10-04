@@ -29,7 +29,7 @@ $canRecordHere = ($isToday || $isYesterday) && !$isClosed;
         <div class="content-header">
             <h1><?php echo $isToday ? "Today's Records" : 'Records for ' . htmlspecialchars($viewDate); ?></h1>
             <?php if ($canRecordHere): ?>
-                <a class="btn btn--primary btn--small" href="<?php echo APP_URL; ?>/index.php?route=cashier/sales/create<?php echo $isYesterday ? '&for=yesterday' : ''; ?>">+ Record Sale</a>
+                <a class="btn btn--primary btn--small" href="<?php echo APP_URL; ?>/index.php?route=<?php echo $isToday ? 'cashier/sales/quick' : 'cashier/sales/create' . ($isYesterday ? '&for=yesterday' : ''); ?>">+ Record Sale</a>
             <?php endif; ?>
         </div>
 
@@ -112,7 +112,7 @@ $canRecordHere = ($isToday || $isYesterday) && !$isClosed;
                 <tr>
                     <td><?php echo date('g:i A', strtotime($r['created_at'])); ?></td>
                     <td><?php echo htmlspecialchars($r['worker_name']); ?></td>
-                    <td class="amount"><?php echo ((float) $r['amount_made'] > 0) ? '₦' . number_format((float) $r['amount_made'], 2) : '—'; ?></td>
+                    <td class="amount">₦<?php echo number_format((float) $r['amount_made'], 2); ?></td>
                     <td>
                         <span class="badge badge--muted"><?php echo ucfirst($r['payment_method']); ?></span>
                     </td>
