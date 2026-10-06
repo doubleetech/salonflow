@@ -557,13 +557,19 @@ class CashierController
         require __DIR__ . '/../views/layouts/footer.php';
     }
 
-    /**
+        /**
      * Shared validation for create + edit sale forms.
      * Returns [isValid, cleanedData, errorMessage].
      * $data['business_date'] is only meaningful for CREATE (edit never
      * changes which day a record belongs to) but is always computed here
      * for consistency — callers that don't need it (editSaleSubmit) just
      * ignore it.
+     *
+     * Tips-only sales are allowed: amount_made may be 0 as long as
+     * tip_amount is greater than 0. In that case the payment method and
+     * channel split are irrelevant (they describe how the SALE amount
+     * moved, and there is no sale amount) — so we zero the channel split
+     * and skip the combination-sum check regardless of method.
      */
     private function validateSale(array $post): array
     {
@@ -579,8 +585,11 @@ class CashierController
         if ($workerId <= 0) {
             return [false, [], 'Please select a staff member.'];
         }
-        if ($amountMade <= 0) {
-            return [false, [], 'Amount made must be greater than zero.'];
+        if ($amountMade < 0) {
+            return [false, [], 'Amount made cannot be negative.'];
+        }
+        if ($amountMade == 0 && $tipAmount == 0) {
+            return [false, [], 'A sale must have an amount made, a tip, or both.'];
         }
         if (!in_array($paymentMethod, $validMethods, true)) {
             return [false, [], 'Please select a valid payment method.'];
@@ -589,8 +598,13 @@ class CashierController
             return [false, [], 'Tip cannot be negative.'];
         }
 
-        // Figure out how amount_made splits across cash/transfer/pos.
-        if ($paymentMethod === 'combination') {
+        // Tips-only: no sale amount to split, so the channel amounts are
+        // all zero and the combination-sum check is skipped. The chosen
+        // payment method is still stored (as-is) for record-keeping.
+        if ($amountMade == 0) {
+            $amounts = ['cash' => 0.0, 'transfer' => 0.0, 'pos' => 0.0];
+        } elseif ($paymentMethod === 'combination') {
+            // Figure out how amount_made splits across cash/transfer/pos.
             $cash = (float) ($post['combo_cash'] ?? 0);
             $transfer = (float) ($post['combo_transfer'] ?? 0);
             $pos = (float) ($post['combo_pos'] ?? 0);

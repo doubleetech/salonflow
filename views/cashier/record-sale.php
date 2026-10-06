@@ -102,8 +102,9 @@
             <div class="alert alert--error" id="qsError" role="alert" hidden></div>
 
             <label for="qsAmount">Amount Made (₦)</label>
-            <input type="number" id="qsAmount" name="amount_made" step="0.01" min="0.01"
-                   inputmode="decimal" placeholder="0.00" autocomplete="off" required>
+            <input type="number" id="qsAmount" name="amount_made" step="0.01" min="0"
+                   inputmode="decimal" placeholder="0.00" autocomplete="off">
+            <p class="field-hint">Leave empty if this is a tip only.</p>
 
             <label for="qsMethod">Payment Method</label>
             <select id="qsMethod" name="payment_method" required>

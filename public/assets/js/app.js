@@ -36,6 +36,220 @@ document.addEventListener('DOMContentLoaded', function () {
     updateComboVisibility(); // run once on load, e.g. when editing an existing combination sale
 });
 
+
+// Phase 3b: Staff combobox on the sale form.
+//
+// As the cashier types in #staff_search, a floating list of matching staff
+// appears below it. Clicking (or keyboard-selecting) a result writes that
+// staff's id into the hidden #worker_id <select>, which remains the actual
+// form field. Server-side validation of worker_id is unchanged — this is
+// pure UI convenience.
+//
+// Behavior decisions:
+//   - Dropdown only opens once the user has typed at least 1 character.
+//   - Enter with no highlighted result auto-picks if there is exactly ONE match.
+//   - Click-outside / Escape closes the dropdown without changing the selection.
+//   - If the input text no longer matches the currently-selected staff,
+//     the hidden select is cleared so a stale value can't be submitted.
+document.addEventListener('DOMContentLoaded', function () {
+    var wrapper = document.getElementById('staff-combobox');
+    var searchInput = document.getElementById('staff_search');
+    var resultsBox = document.getElementById('staff-results');
+    var workerSelect = document.getElementById('worker_id');
+
+    if (!wrapper || !searchInput || !resultsBox || !workerSelect) {
+        return; // not on the sale form — nothing to do
+    }
+
+    // Snapshot staff once from the hidden <select>, so the native select
+    // remains the single source of truth and we never diverge from PHP.
+    var staff = [];
+    for (var i = 0; i < workerSelect.options.length; i++) {
+        var opt = workerSelect.options[i];
+        if (opt.value === '') continue; // skip placeholder
+        staff.push({ id: opt.value, name: opt.textContent.trim() });
+    }
+
+    var highlightIndex = -1; // -1 = nothing highlighted
+    var visibleMatches = []; // current filtered list, mirror of what's rendered
+
+    function escapeHtml(value) {
+        var div = document.createElement('div');
+        div.textContent = value === undefined || value === null ? '' : String(value);
+        return div.innerHTML;
+    }
+
+    function openResults() {
+        resultsBox.hidden = false;
+        searchInput.setAttribute('aria-expanded', 'true');
+    }
+
+    function closeResults() {
+        resultsBox.hidden = true;
+        resultsBox.innerHTML = '';
+        highlightIndex = -1;
+        visibleMatches = [];
+        searchInput.setAttribute('aria-expanded', 'false');
+    }
+
+    function setHighlight(newIndex) {
+        var items = resultsBox.querySelectorAll('.staff-combobox__item');
+        if (items.length === 0) return;
+        if (newIndex < 0) newIndex = items.length - 1;
+        if (newIndex >= items.length) newIndex = 0;
+        highlightIndex = newIndex;
+        items.forEach(function (el, idx) {
+            el.classList.toggle('is-highlighted', idx === highlightIndex);
+        });
+        var highlighted = items[highlightIndex];
+        if (highlighted && highlighted.scrollIntoView) {
+            highlighted.scrollIntoView({ block: 'nearest' });
+        }
+    }
+
+    function pick(staffMember) {
+        // Set the real form field.
+        workerSelect.value = staffMember.id;
+        // Show the chosen name in the visible input.
+        searchInput.value = staffMember.name;
+        closeResults();
+    }
+
+    function render(query) {
+        var q = query.trim().toLowerCase();
+
+        // Requirement: no dropdown on empty input — must type something first.
+        if (q === '') {
+            closeResults();
+            return;
+        }
+
+        visibleMatches = staff.filter(function (s) {
+            return s.name.toLowerCase().indexOf(q) !== -1;
+        });
+
+        if (visibleMatches.length === 0) {
+            resultsBox.innerHTML = '<div class="staff-combobox__empty">No staff match "' + escapeHtml(query) + '".</div>';
+            openResults();
+            highlightIndex = -1;
+            return;
+        }
+
+        resultsBox.innerHTML = visibleMatches.map(function (s, idx) {
+            return '<div class="staff-combobox__item" role="option" data-index="' + idx + '" data-id="' + escapeHtml(s.id) + '">'
+                + escapeHtml(s.name)
+                + '</div>';
+        }).join('');
+        openResults();
+        highlightIndex = -1;
+    }
+
+    // ---- Events ----
+
+    searchInput.addEventListener('input', function () {
+        // If the typed text no longer matches the currently-selected staff,
+        // clear the hidden select so the form can't silently submit a stale id.
+        var currentSelectedId = workerSelect.value;
+        if (currentSelectedId !== '') {
+            var stillMatches = false;
+            for (var i = 0; i < staff.length; i++) {
+                if (staff[i].id === currentSelectedId &&
+                    staff[i].name.toLowerCase() === searchInput.value.trim().toLowerCase()) {
+                    stillMatches = true;
+                    break;
+                }
+            }
+            if (!stillMatches) {
+                workerSelect.value = '';
+            }
+        }
+        render(searchInput.value);
+    });
+
+    searchInput.addEventListener('keydown', function (e) {
+        var isOpen = !resultsBox.hidden;
+        var items = isOpen ? resultsBox.querySelectorAll('.staff-combobox__item') : [];
+
+        if (e.key === 'ArrowDown') {
+            if (isOpen && items.length > 0) {
+                e.preventDefault();
+                setHighlight(highlightIndex + 1);
+            }
+        } else if (e.key === 'ArrowUp') {
+            if (isOpen && items.length > 0) {
+                e.preventDefault();
+                setHighlight(highlightIndex - 1);
+            }
+        } else if (e.key === 'Enter') {
+            if (isOpen) {
+                if (highlightIndex >= 0 && visibleMatches[highlightIndex]) {
+                    e.preventDefault();
+                    pick(visibleMatches[highlightIndex]);
+                } else if (items.length === 1 && visibleMatches[0]) {
+                    // Requirement: auto-pick when exactly one match and no highlight.
+                    e.preventDefault();
+                    pick(visibleMatches[0]);
+                }
+                // Otherwise: do nothing (don't submit the form by accident
+                // when the cashier just typed a partial name).
+            }
+        } else if (e.key === 'Escape') {
+            if (isOpen) {
+                e.preventDefault();
+                closeResults();
+            }
+        }
+    });
+
+    resultsBox.addEventListener('mousedown', function (e) {
+        // mousedown (not click) so the pick fires before input blur closes the list.
+        var item = e.target.closest('.staff-combobox__item');
+        if (!item) return;
+        e.preventDefault();
+        var idx = parseInt(item.getAttribute('data-index'), 10);
+        if (!isNaN(idx) && visibleMatches[idx]) {
+            pick(visibleMatches[idx]);
+        }
+    });
+
+    resultsBox.addEventListener('mousemove', function (e) {
+        var item = e.target.closest('.staff-combobox__item');
+        if (!item) return;
+        var items = resultsBox.querySelectorAll('.staff-combobox__item');
+        items.forEach(function (el, idx) {
+            if (el === item) {
+                highlightIndex = idx;
+                el.classList.add('is-highlighted');
+            } else {
+                el.classList.remove('is-highlighted');
+            }
+        });
+    });
+
+    // Click outside closes the list. Use mousedown on document so it runs
+    // even if the user clicks on a non-focusable area.
+    document.addEventListener('mousedown', function (e) {
+        if (!wrapper.contains(e.target)) {
+            closeResults();
+        }
+    });
+
+    // If the user tabs away with the input containing text that matches
+    // exactly one staff and no pick was made, do NOT auto-commit — that's
+    // the D3 "no auto-select on blur" rule. But if the input text no longer
+    // matches the selected staff, clearing the hidden select already happened
+    // on input — nothing more to do here.
+    searchInput.addEventListener('blur', function () {
+        // Small delay so a mousedown on a result can fire first.
+        setTimeout(function () {
+            if (!wrapper.contains(document.activeElement)) {
+                closeResults();
+            }
+        }, 120);
+    });
+});
+
+
 // Phase 4: the Reports filter form has a "Report Type" dropdown. Daily/
 // Weekly/Monthly all use a single "Date" field (it just means different
 // things depending on the type — e.g. for Weekly it picks which week).
@@ -310,6 +524,7 @@ document.addEventListener('DOMContentLoaded', function () {
         var posTotal = document.getElementById('posTotal');
         var tipsTotal = document.getElementById('tipsTotal');
         var commissionsTotal = document.getElementById('commissionsTotal');
+        var staffCommissionTipsToday = document.getElementById('staffCommissionTipsToday');
         var salonEarnings = document.getElementById('salonEarnings');
         
         if (cashTotal && summary.cash_total !== undefined) {
@@ -326,6 +541,17 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         if (commissionsTotal && summary.worker_commissions !== undefined) {
             commissionsTotal.textContent = '₦' + parseFloat(summary.worker_commissions).toFixed(2);
+        }
+        // Prefer the pre-computed staff_payout field from ReportModel::summary();
+        // fall back to summing the two parts by hand if it's missing (older
+        // cached response, or ReportModel not yet updated).
+        if (staffCommissionTipsToday) {
+            if (summary.staff_payout !== undefined) {
+                staffCommissionTipsToday.textContent = '₦' + parseFloat(summary.staff_payout).toFixed(2);
+            } else if (summary.worker_commissions !== undefined && summary.tips_total !== undefined) {
+                var combinedToday = parseFloat(summary.worker_commissions) + parseFloat(summary.tips_total);
+                staffCommissionTipsToday.textContent = '₦' + combinedToday.toFixed(2);
+            }
         }
         if (salonEarnings && summary.salon_earnings !== undefined) {
             salonEarnings.textContent = '₦' + parseFloat(summary.salon_earnings).toFixed(2);
@@ -371,16 +597,19 @@ document.addEventListener('DOMContentLoaded', function () {
         var workerTableBody = document.getElementById('workerTableBody');
         if (workerTableBody && data.data.workerPerformance) {
             if (data.data.workerPerformance.length === 0) {
-                workerTableBody.innerHTML = '<tr><td colspan="6" class="empty-row">No workers yet.</td></tr>';
+                workerTableBody.innerHTML = '<tr><td colspan="7" class="empty-row">No workers yet.</td></tr>';
             } else {
                 workerTableBody.innerHTML = data.data.workerPerformance.map(function (w) {
+                    var commission = parseFloat(w.commission);
+                    var tips = parseFloat(w.tips);
                     return '<tr>' +
                         '<td>' + escapeHtml(w.full_name) + '</td>' +
                         '<td>' + escapeHtml(w.branch_name) + '</td>' +
                         '<td>' + parseInt(w.record_count, 10) + '</td>' +
                         '<td class="amount">₦' + parseFloat(w.revenue).toFixed(2) + '</td>' +
-                        '<td class="amount">₦' + parseFloat(w.commission).toFixed(2) + '</td>' +
-                        '<td class="amount">₦' + parseFloat(w.tips).toFixed(2) + '</td>' +
+                        '<td class="amount">₦' + commission.toFixed(2) + '</td>' +
+                        '<td class="amount">₦' + tips.toFixed(2) + '</td>' +
+                        '<td class="amount">₦' + (commission + tips).toFixed(2) + '</td>' +
                         '</tr>';
                 }).join('');
             }
@@ -398,6 +627,7 @@ document.addEventListener('DOMContentLoaded', function () {
         var cashTotal = document.getElementById('cashTotal');
         var transferTotal = document.getElementById('transferTotal');
         var posTotal = document.getElementById('posTotal');
+        var staffCommissionTips = document.getElementById('staffCommissionTips');
         
         if (todayRecords && summary.record_count !== undefined) {
             todayRecords.textContent = summary.record_count || 0;
@@ -413,6 +643,14 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         if (posTotal && summary.pos_total !== undefined) {
             posTotal.textContent = '₦' + parseFloat(summary.pos_total).toFixed(2);
+        }
+        // Combined Staff Commissions + Tips — comes as two separate fields
+        // from TransactionModel::summaryForBranchToday(), summed here.
+        if (staffCommissionTips &&
+            summary.worker_commissions_total !== undefined &&
+            summary.tips_total !== undefined) {
+            var combined = parseFloat(summary.worker_commissions_total) + parseFloat(summary.tips_total);
+            staffCommissionTips.textContent = '₦' + combined.toFixed(2);
         }
     }
     
@@ -438,6 +676,7 @@ document.addEventListener('DOMContentLoaded', function () {
             var revenueEl = document.getElementById(period.prefix + 'Revenue');
             var commissionEl = document.getElementById(period.prefix + 'Commission');
             var tipsEl = document.getElementById(period.prefix + 'Tips');
+            var commissionTipsEl = document.getElementById(period.prefix + 'CommissionTips');
 
             if (salesEl && summary.record_count !== undefined) {
                 salesEl.textContent = summary.record_count || 0;
@@ -450,6 +689,16 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             if (tipsEl && summary.tips !== undefined) {
                 tipsEl.textContent = '₦' + parseFloat(summary.tips).toFixed(2);
+            }
+            // Combined card — prefer the pre-computed staff_payout field,
+            // fall back to summing commission + tips if it's absent.
+            if (commissionTipsEl) {
+                if (summary.staff_payout !== undefined) {
+                    commissionTipsEl.textContent = '₦' + parseFloat(summary.staff_payout).toFixed(2);
+                } else if (summary.commission !== undefined && summary.tips !== undefined) {
+                    var combinedOwn = parseFloat(summary.commission) + parseFloat(summary.tips);
+                    commissionTipsEl.textContent = '₦' + combinedOwn.toFixed(2);
+                }
             }
         });
     }
@@ -801,9 +1050,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
         showError('');
 
-        var amountValue = parseFloat(amount.value);
-        if (!(amountValue > 0)) {
-            showError('Enter an amount greater than zero.');
+        // A record needs an amount, a tip, or both. Tip-only is allowed, so an
+        // empty Amount is fine as long as a Tip is entered.
+        var amountValue = parseFloat(amount.value) || 0;
+        var tipValue = parseFloat(tip.value) || 0;
+        if (amountValue < 0 || tipValue < 0) {
+            showError('Amount and tip cannot be negative.');
+            return;
+        }
+        if (amountValue <= 0 && tipValue <= 0) {
+            showError('Enter an amount, a tip, or both.');
             amount.focus();
             return;
         }
@@ -849,7 +1105,8 @@ document.addEventListener('DOMContentLoaded', function () {
             // Fresh start for the next customer: clear the search, show everyone.
             if (search) { search.value = ''; applyFilter(); }
 
-            showToast('Saved \u2713 ' + formatMoney(amountValue) + ' for ' + savedName);
+            var savedText = amountValue > 0 ? formatMoney(amountValue) : formatMoney(tipValue) + ' tip';
+            showToast('Saved \u2713 ' + savedText + ' for ' + savedName);
         })
         .catch(function (err) {
             setSaving(false);

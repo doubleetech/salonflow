@@ -80,8 +80,7 @@ foreach ($workers as $w) {
             <?php if (!$sale): ?>
                 <label for="record_for">Record For</label>
                 <select id="record_for" name="record_for" required>
-                    <option value="today" <?php echo $field('record_for', 'today') === 'today' ? 'selected' : ''; ?>>Today (<?php echo date('M j'); ?>)</option>
-                    <option value="yesterday" <?php echo $field('record_for', 'today') === 'yesterday' ? 'selected' : ''; ?>>Yesterday (<?php echo date('M j', strtotime('-1 day')); ?>)</option>
+                    <option value="yesterday" selected>Yesterday (<?php echo date('M j', strtotime('-1 day')); ?>)</option>
                 </select>
                 <p class="field-hint">Only yesterday can be backdated, and only if it isn't closed yet.</p>
             <?php endif; ?>
