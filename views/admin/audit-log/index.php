@@ -48,7 +48,7 @@ $buildPageUrl = function (int $targetPage) use ($selectedAction, $selectedStart,
                         <option value="">All Actions</option>
                         <?php foreach ($actions as $a): ?>
                             <option value="<?php echo htmlspecialchars($a); ?>" <?php echo $selectedAction === $a ? 'selected' : ''; ?>>
-                                <?php echo htmlspecialchars($a); ?>
+                                <?php echo htmlspecialchars(Wording::action($a)); ?>
                             </option>
                         <?php endforeach; ?>
                     </select>
@@ -87,9 +87,9 @@ $buildPageUrl = function (int $targetPage) use ($selectedAction, $selectedStart,
                 <?php foreach ($logs as $log): ?>
                 <tr>
                     <td><?php echo date('M j, Y g:i A', strtotime($log['created_at'])); ?></td>
-                    <td><?php echo htmlspecialchars($log['user_label'] ?? 'system'); ?></td>
-                    <td><span class="badge badge--muted"><?php echo htmlspecialchars($log['action']); ?></span></td>
-                    <td><?php echo htmlspecialchars($log['description'] ?? ''); ?></td>
+                    <td><?php echo htmlspecialchars(Wording::visible($log['user_label'] ?? 'system')); ?></td>
+                    <td><span class="badge badge--muted"><?php echo htmlspecialchars(Wording::action($log['action'])); ?></span></td>
+                    <td><?php echo htmlspecialchars(Wording::visible($log['description'] ?? '')); ?></td>
                     <td><?php echo htmlspecialchars($log['ip_address'] ?? ''); ?></td>
                 </tr>
                 <?php endforeach; ?>

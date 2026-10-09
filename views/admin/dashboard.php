@@ -28,7 +28,16 @@
             </div>
         </div>
 
-        
+
+        <?php
+        try { $openAppealsCount = TransactionModel::openAppealCount(); } catch (Throwable $e) { $openAppealsCount = 0; }
+        ?>
+        <!-- Only visible while at least one appeal is open. The live heartbeat shows/hides it. -->
+        <div class="alert alert--warning" id="appealsAlert" style="display:<?php echo $openAppealsCount > 0 ? 'flex' : 'none'; ?>;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+            <span><i class="fas fa-flag"></i> <strong id="appealsAlertCount"><?php echo (int) $openAppealsCount; ?></strong> <span id="appealsAlertText"><?php echo $openAppealsCount === 1 ? 'appeal is' : 'appeals are'; ?></span> waiting for your review</span>
+            <a class="btn btn--primary btn--small" href="<?php echo APP_URL; ?>/index.php?route=admin/appeals">Review appeals</a>
+        </div>
+
         <h2 class="section-heading">Revenue Trend</h2>
         <div class="card-grid" id="revenueCards">
             <div class="stat-card"><span class="stat-card__label">Today's Revenue</span><span class="stat-card__value" id="todayRevenue">₦<?php echo number_format((float) $todaySummary['total_revenue'], 2); ?></span></div>
@@ -36,11 +45,11 @@
             <div class="stat-card"><span class="stat-card__label">Month-to-Date Revenue</span><span class="stat-card__value" id="monthRevenue">₦<?php echo number_format((float) $monthSummary['total_revenue'], 2); ?></span></div>
         </div>
 
-        <h2 class="section-heading">Revenue + Tips</h2>
+        <h2 class="section-heading">Revenue + Cashback</h2>
         <div class="card-grid" id="revenueTipsCards">
-            <div class="stat-card stat-card--tips"><span class="stat-card__label">Today's Revenue + Tips</span><span class="stat-card__value" id="todayRevenueTips">₦<?php echo number_format((float) $todaySummary['total_revenue'] + (float) $todaySummary['tips_total'], 2); ?></span></div>
-            <div class="stat-card stat-card--tips"><span class="stat-card__label">Week-to-Date Revenue + Tips</span><span class="stat-card__value" id="weekRevenueTips">₦<?php echo number_format((float) $weekSummary['total_revenue'] + (float) $weekSummary['tips_total'], 2); ?></span></div>
-            <div class="stat-card stat-card--tips"><span class="stat-card__label">Month-to-Date Revenue + Tips</span><span class="stat-card__value" id="monthRevenueTips">₦<?php echo number_format((float) $monthSummary['total_revenue'] + (float) $monthSummary['tips_total'], 2); ?></span></div>
+            <div class="stat-card stat-card--tips"><span class="stat-card__label">Today's Revenue + Cashback</span><span class="stat-card__value" id="todayRevenueTips">₦<?php echo number_format((float) $todaySummary['total_revenue'] + (float) $todaySummary['tips_total'], 2); ?></span></div>
+            <div class="stat-card stat-card--tips"><span class="stat-card__label">Week-to-Date Revenue + Cashback</span><span class="stat-card__value" id="weekRevenueTips">₦<?php echo number_format((float) $weekSummary['total_revenue'] + (float) $weekSummary['tips_total'], 2); ?></span></div>
+            <div class="stat-card stat-card--tips"><span class="stat-card__label">Month-to-Date Revenue + Cashback</span><span class="stat-card__value" id="monthRevenueTips">₦<?php echo number_format((float) $monthSummary['total_revenue'] + (float) $monthSummary['tips_total'], 2); ?></span></div>
         </div>
 
         <h2 class="section-heading">Today, at a Glance</h2>
@@ -48,9 +57,9 @@
             <div class="stat-card"><span class="stat-card__label">Cash Total</span><span class="stat-card__value" id="cashTotal">₦<?php echo number_format((float) $todaySummary['cash_total'], 2); ?></span></div>
             <div class="stat-card"><span class="stat-card__label">Transfer Total</span><span class="stat-card__value" id="transferTotal">₦<?php echo number_format((float) $todaySummary['transfer_total'], 2); ?></span></div>
             <div class="stat-card"><span class="stat-card__label">POS Total</span><span class="stat-card__value" id="posTotal">₦<?php echo number_format((float) $todaySummary['pos_total'], 2); ?></span></div>
-            <div class="stat-card"><span class="stat-card__label">Tips</span><span class="stat-card__value" id="tipsTotal">₦<?php echo number_format((float) $todaySummary['tips_total'], 2); ?></span></div>
+            <div class="stat-card"><span class="stat-card__label">Cashback</span><span class="stat-card__value" id="tipsTotal">₦<?php echo number_format((float) $todaySummary['tips_total'], 2); ?></span></div>
             <div class="stat-card"><span class="stat-card__label">Staff Commissions</span><span class="stat-card__value" id="commissionsTotal">₦<?php echo number_format((float) $todaySummary['worker_commissions'], 2); ?></span></div>
-            <div class="stat-card stat-card--tips"><span class="stat-card__label">Staff Commissions + Tips</span><span class="stat-card__value" id="staffCommissionTipsToday">₦<?php echo number_format((float) $todaySummary['staff_payout'], 2); ?></span></div>
+            <div class="stat-card stat-card--tips"><span class="stat-card__label">Staff Commissions + Cashback</span><span class="stat-card__value" id="staffCommissionTipsToday">₦<?php echo number_format((float) $todaySummary['staff_payout'], 2); ?></span></div>
             <div class="stat-card"><span class="stat-card__label">Salon Earnings</span><span class="stat-card__value" id="salonEarnings">₦<?php echo number_format((float) $todaySummary['salon_earnings'], 2); ?></span></div>
         </div>
 
@@ -77,7 +86,7 @@
         <h2 class="section-heading">Staff Performance — Today</h2>
         <div class="table-wrapper">
               <table class="data-table">
-            <thead><tr><th>Staff</th><th>Branch</th><th>Sales</th><th>Revenue</th><th>Commission</th><th>Tips</th><th>Comm + Tips</th></tr></thead>
+            <thead><tr><th>Staff</th><th>Branch</th><th>Sales</th><th>Revenue</th><th>Commission</th><th>Cashback</th><th>Comm + Cashback</th></tr></thead>
             <tbody id="workerTableBody">
                 <?php if (empty($workerPerformance)): ?>
                     <tr><td colspan="7" class="empty-row">No staff yet.</td></tr>
@@ -98,4 +107,4 @@
         </div>
       
     </main>
-</div>
+</div>

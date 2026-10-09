@@ -31,6 +31,12 @@ function navClass($route, $current) {
         <a class="<?php echo navClass('admin/closures', $currentRoute); ?>" href="<?php echo APP_URL; ?>/index.php?route=admin/closures">
             <i class="fas fa-lock"></i> Closures
         </a>
+        <?php
+        try { $openAppeals = TransactionModel::openAppealCount(); } catch (Throwable $e) { $openAppeals = 0; }
+        ?>
+        <a class="<?php echo navClass('admin/appeals', $currentRoute); ?>" href="<?php echo APP_URL; ?>/index.php?route=admin/appeals">
+            <i class="fas fa-flag"></i> Appeals <span class="badge badge--warning" id="appealsBadge"<?php if ($openAppeals < 1): ?> style="display:none"<?php endif; ?>><?php echo (int) $openAppeals; ?></span>
+        </a>
         <a class="<?php echo navClass('admin/audit-log', $currentRoute); ?>" href="<?php echo APP_URL; ?>/index.php?route=admin/audit-log">
             <i class="fas fa-history"></i> Audit Log
         </a>
@@ -38,4 +44,4 @@ function navClass($route, $current) {
             <i class="fas fa-cog"></i> Settings
         </a>
     </div>
-</nav>
+</nav>

@@ -91,10 +91,10 @@ $displayEnd = DateRange::formatForDisplay($selectedEnd);
             <div class="stat-card"><span class="stat-card__label">Cash Total</span><span class="stat-card__value">₦<?php echo number_format((float) $summary['cash_total'], 2); ?></span></div>
             <div class="stat-card"><span class="stat-card__label">Transfer Total</span><span class="stat-card__value">₦<?php echo number_format((float) $summary['transfer_total'], 2); ?></span></div>
             <div class="stat-card"><span class="stat-card__label">POS Total</span><span class="stat-card__value">₦<?php echo number_format((float) $summary['pos_total'], 2); ?></span></div>
-            <div class="stat-card"><span class="stat-card__label">Tips</span><span class="stat-card__value">₦<?php echo number_format((float) $summary['tips_total'], 2); ?></span></div>
-            <div class="stat-card stat-card--tips"><span class="stat-card__label">Total Revenue + Tips</span><span class="stat-card__value">₦<?php echo number_format((float) $summary['total_revenue'] + (float) $summary['tips_total'], 2); ?></span></div>
-            <div class="stat-card"><span class="stat-card__label">Worker Commissions</span><span class="stat-card__value">₦<?php echo number_format((float) $summary['worker_commissions'], 2); ?></span></div>
-            <div class="stat-card stat-card--tips"><span class="stat-card__label">Staff Commissions + Tips</span><span class="stat-card__value">₦<?php echo number_format((float) $summary['staff_payout'], 2); ?></span></div>
+            <div class="stat-card"><span class="stat-card__label">Cashback</span><span class="stat-card__value">₦<?php echo number_format((float) $summary['tips_total'], 2); ?></span></div>
+            <div class="stat-card stat-card--tips"><span class="stat-card__label">Total Revenue + Cashback</span><span class="stat-card__value">₦<?php echo number_format((float) $summary['total_revenue'] + (float) $summary['tips_total'], 2); ?></span></div>
+            <div class="stat-card"><span class="stat-card__label">Staff Commissions</span><span class="stat-card__value">₦<?php echo number_format((float) $summary['worker_commissions'], 2); ?></span></div>
+            <div class="stat-card stat-card--tips"><span class="stat-card__label">Staff Commissions + Cashback</span><span class="stat-card__value">₦<?php echo number_format((float) $summary['staff_payout'], 2); ?></span></div>
             <div class="stat-card"><span class="stat-card__label">Salon Earnings</span><span class="stat-card__value">₦<?php echo number_format((float) $summary['salon_earnings'], 2); ?></span></div>
             <div class="stat-card"><span class="stat-card__label">Number of Sales</span><span class="stat-card__value"><?php echo (int) $summary['record_count']; ?></span></div>
         </div>
@@ -102,7 +102,7 @@ $displayEnd = DateRange::formatForDisplay($selectedEnd);
         <h2 class="section-heading">Staff Performance</h2>
          <div class="table-wrapper">
              <table class="data-table">
-            <thead><tr><th>Staff</th><th>Sales</th><th>Revenue</th><th>Commission</th><th>Tips</th><th>Comm + Tips</th></tr></thead>
+            <thead><tr><th>Staff</th><th>Sales</th><th>Revenue</th><th>Commission</th><th>Cashback</th><th>Comm + Cashback</th></tr></thead>
             <tbody>
                 <?php if (empty($workerPerformance)): ?>
                     <tr><td colspan="6" class="empty-row">No data for this period.</td></tr>
@@ -124,4 +124,4 @@ $displayEnd = DateRange::formatForDisplay($selectedEnd);
        
         <?php endif; ?>
     </main>
-</div>
+</div>

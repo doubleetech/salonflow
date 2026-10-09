@@ -29,7 +29,7 @@ $canRecordHere = ($isToday || $isYesterday) && !$isClosed;
         <div class="content-header">
             <h1><?php echo $isToday ? "Today's Records" : 'Records for ' . htmlspecialchars($viewDate); ?></h1>
             <?php if ($canRecordHere): ?>
-                <a class="btn btn--primary btn--small" href="<?php echo APP_URL; ?>/index.php?route=<?php echo $isToday ? 'cashier/sales/quick' : 'cashier/sales/create' . ($isYesterday ? '&for=yesterday' : ''); ?>">+ Record Sale</a>
+                <a class="btn btn--primary btn--small" href="<?php echo APP_URL; ?>/index.php?route=<?php echo $isToday ? 'cashier/dashboard#quickSale' : 'cashier/sales/create' . ($isYesterday ? '&for=yesterday' : ''); ?>">+ Record Sale</a>
             <?php endif; ?>
         </div>
 
@@ -56,8 +56,9 @@ $canRecordHere = ($isToday || $isYesterday) && !$isClosed;
         <?php if ($isToday): ?>
             <p class="field-hint">
                 Forgot to record something from yesterday?
-                <a href="<?php echo APP_URL; ?>/index.php?route=cashier/sales&date=<?php echo urlencode(date('Y-m-d', strtotime('-1 day'))); ?>">View yesterday's records</a>.
+                <a href="<?php echo APP_URL; ?>/index.php?route=cashier/sales&date=<?php echo urlencode(date('Y-m-d', strtotime('-1 day'))); ?>">VIEW YESTERDAY'S RECORDS</a>.
             </p>
+            <BR>
         <?php endif; ?>
 
         <?php if (!empty($success)): ?>
@@ -75,7 +76,7 @@ $canRecordHere = ($isToday || $isYesterday) && !$isClosed;
                     <div><span class="field-hint">Cash</span><br>₦<?php echo number_format((float) $closure['cash_total'], 2); ?></div>
                     <div><span class="field-hint">Transfer</span><br>₦<?php echo number_format((float) $closure['transfer_total'], 2); ?></div>
                     <div><span class="field-hint">POS</span><br>₦<?php echo number_format((float) $closure['pos_total'], 2); ?></div>
-                    <div><span class="field-hint">Tips</span><br>₦<?php echo number_format((float) $closure['tips_total'], 2); ?></div>
+                    <div><span class="field-hint">Cashback</span><br>₦<?php echo number_format((float) $closure['tips_total'], 2); ?></div>
                     <div><span class="field-hint">Salon Earnings</span><br>₦<?php echo number_format((float) $closure['salon_earnings'], 2); ?></div>
                 </div>
                 <p class="field-hint">
@@ -100,7 +101,7 @@ $canRecordHere = ($isToday || $isYesterday) && !$isClosed;
                     <th>Staff</th>
                     <th>Amount</th>
                     <th>Method</th>
-                    <th>Tip</th>
+                    <th>Cashback</th>
                     <th></th>
                 </tr>
             </thead>

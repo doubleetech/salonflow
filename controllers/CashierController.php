@@ -26,6 +26,8 @@ class CashierController
         $summary = TransactionModel::summaryForBranchToday($branchId);
         $isTodayClosed = ClosureModel::isClosed($branchId, date('Y-m-d'));
         $pendingReopen = ClosureModel::findReopenedForBranch($branchId);
+        // The staff cards (tap a name to record a sale) now live on the dashboard.
+        $workers = $this->workersWithStats($branchId, date('Y-m-d'));
 
         require __DIR__ . '/../views/layouts/header.php';
         require __DIR__ . '/../views/cashier/dashboard.php';
@@ -36,6 +38,54 @@ class CashierController
      * API endpoint for heartbeat updates on cashier dashboard
      * Returns fresh data without reloading the page
      */
+    /** Appeals at this branch: first appeals the cashier can handle, second appeals that are with the Admin. */
+    public function appeals(): void
+    {
+        Auth::requireCashier();
+        $branchId = $this->currentBranchId();
+
+        $pageTitle = 'Appeals';
+        $appeals = TransactionModel::openAppeals($branchId);
+        $success = Session::flash('appeal_success');
+        $error = Session::flash('appeal_error');
+
+        require __DIR__ . '/../views/layouts/header.php';
+        require __DIR__ . '/../views/cashier/appeals.php';
+        require __DIR__ . '/../views/layouts/footer.php';
+    }
+
+    /** "Confirm correct": the record is fine as it is. A note is required; it goes back to the staff member to confirm again. */
+    public function resolveAppealSubmit(): void
+    {
+        Auth::requireCashier();
+        Csrf::verifyOrFail($_POST['csrf_token'] ?? '');
+        $branchId = $this->currentBranchId();
+
+        $id = (int) ($_POST['record_id'] ?? 0);
+        $note = TransactionModel::clipNote((string) ($_POST['note'] ?? ''));
+        $record = TransactionModel::find($id);
+
+        if ($note === '') {
+            Session::flash('appeal_error', 'Please write a short note. The staff member will see it.');
+        } elseif (!$record || (int) $record['branch_id'] !== $branchId || $record['confirmation_status'] !== 'appealed') {
+            Session::flash('appeal_error', 'That appeal was not found or is already resolved.');
+        } elseif ((int) $record['appeal_count'] >= TransactionModel::MAX_APPEALS) {
+            Session::flash('appeal_error', 'This is a second appeal, so the Admin will decide it.');
+        } elseif (TransactionModel::resolveAppeal($id, (int) Auth::id(), $note)) {
+            $reason = TransactionModel::appealReasonLabel($record['appeal_reason'] ?? null);
+            AuditLog::record(
+                'appeal_resolved',
+                "Resolved appeal on Record #{$id} (₦" . number_format((float) $record['amount_made'], 2) . "). Staff reason was: {$reason}. Sent back to staff to confirm. Note: {$note}"
+            );
+            Session::flash('appeal_success', "Appeal on Record #{$id} answered and sent back to the staff member to confirm.");
+        } else {
+            Session::flash('appeal_error', 'That appeal was not found or is already resolved.');
+        }
+
+        header('Location: ' . APP_URL . '/index.php?route=cashier/appeals');
+        exit;
+    }
+
     public function heartbeat(): void
     {
         Auth::requireCashier();
@@ -59,6 +109,16 @@ class CashierController
         $summary = TransactionModel::summaryForBranchToday($branchId);
         $isTodayClosed = ClosureModel::isClosed($branchId, $today);
         $pendingReopen = ClosureModel::findReopenedForBranch($branchId);
+
+        // Fresh sale count + revenue per worker, for the staff cards on the dashboard
+        $workers = [];
+        foreach ($this->workersWithStats($branchId, $today) as $w) {
+            $workers[] = [
+                'id' => (int) $w['id'],
+                'sale_count' => $w['sale_count'],
+                'revenue' => $w['revenue'],
+            ];
+        }
         
         // Get current timestamp
         $currentTime = time();
@@ -72,6 +132,8 @@ class CashierController
                 'summary' => $summary,
                 'isTodayClosed' => $isTodayClosed,
                 'pendingReopen' => $pendingReopen,
+                'workers' => $workers,
+                'openAppeals' => TransactionModel::openCashierAppealCount($branchId),
             ]
         ]);
         exit;
@@ -212,24 +274,14 @@ class CashierController
     }
 
     /**
-     * The everyday "Record Sale" screen: one card per active worker in the
-     * cashier's branch, tap a card to record a sale in a bottom-sheet popup.
-     * Page only — the popup posts to saleSubmit() below, same as the old form.
+     * The staff-card "Record Sale" screen now lives on the dashboard. This
+     * route stays so old bookmarks and cached links still land somewhere useful.
      */
     public function quickSale(): void
     {
         Auth::requireCashier();
-        $this->redirectIfMustChangePassword();
-        $branchId = $this->currentBranchId();
-
-        $pageTitle = 'Record Sale';
-        $today = date('Y-m-d');
-        $isTodayClosed = ClosureModel::isClosed($branchId, $today);
-        $workers = $this->workersWithStats($branchId, $today);
-
-        require __DIR__ . '/../views/layouts/header.php';
-        require __DIR__ . '/../views/cashier/record-sale.php';
-        require __DIR__ . '/../views/layouts/footer.php';
+        header('Location: ' . APP_URL . '/index.php?route=cashier/dashboard#quickSale');
+        exit;
     }
 
     public function saleForm(): void
@@ -325,6 +377,7 @@ class CashierController
                 'success' => true,
                 'message' => 'Sale recorded.',
                 'worker' => $worker,
+                'summary' => TransactionModel::summaryForBranchToday($branchId),
             ]);
         }
 
@@ -383,6 +436,19 @@ class CashierController
             return;
         }
 
+        // A real change goes back to the staff member to confirm again, so the
+        // cashier must say what changed (the staff member sees this note).
+        $changed = TransactionModel::hasChanges(
+            $existing, $data['worker_id'], $data['amount_made'], $data['payment_method'],
+            $data['amounts'], $data['tip_amount'], $data['note']
+        );
+        $revisionNote = TransactionModel::clipNote((string) ($_POST['revision_note'] ?? ''));
+        if ($changed && $revisionNote === '') {
+            $this->renderSaleForm(branchId: $branchId, sale: $existing, old: $_POST,
+                error: 'Please add a short note explaining what changed. The staff member will see it.');
+            return;
+        }
+
         // Editing never changes WHICH day a record belongs to — only its
         // content (amount/worker/etc). That's fixed at creation.
         TransactionModel::update(
@@ -392,11 +458,21 @@ class CashierController
             $data['payment_method'],
             $data['amounts'],
             $data['tip_amount'],
-            $data['note']
+            $data['note'],
+            $revisionNote,
+            (int) Auth::id()
         );
 
         AuditLog::record('edit_sale', "Edited sale #{$id}");
-        Session::flash('sale_success', 'Sale updated.');
+        if ($changed) {
+            $wasAppealed = $existing['confirmation_status'] === 'appealed';
+            AuditLog::record(
+                $wasAppealed ? 'appeal_resolved' : 'record_revised',
+                ($wasAppealed ? "Appeal on Record #{$id} closed by edit" : "Record #{$id} edited")
+                . ". Sent back to staff to confirm. Note: {$revisionNote}"
+            );
+        }
+        Session::flash('sale_success', $changed ? 'Sale updated and sent back to the staff member to confirm.' : 'Sale updated.');
 
         // Land back on the day the record actually belongs to — matters
         // when editing a backdated or reopened PAST day, not just today.
@@ -589,13 +665,13 @@ class CashierController
             return [false, [], 'Amount made cannot be negative.'];
         }
         if ($amountMade == 0 && $tipAmount == 0) {
-            return [false, [], 'A sale must have an amount made, a tip, or both.'];
+            return [false, [], 'A sale must have an amount made, a cashback, or both.'];
         }
         if (!in_array($paymentMethod, $validMethods, true)) {
             return [false, [], 'Please select a valid payment method.'];
         }
         if ($tipAmount < 0) {
-            return [false, [], 'Tip cannot be negative.'];
+            return [false, [], 'Cashback cannot be negative.'];
         }
 
         // Tips-only: no sale amount to split, so the channel amounts are
@@ -647,4 +723,4 @@ class CashierController
         $d = DateTime::createFromFormat('Y-m-d', $value);
         return $d && $d->format('Y-m-d') === $value;
     }
-}
+}

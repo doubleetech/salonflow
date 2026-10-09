@@ -9,6 +9,6 @@
         USER_ROLE: <?php echo json_encode(Session::get('user_role')); ?>
     };
 </script>
-     <script src="<?php echo APP_URL; ?>/assets/js/app.js?v=<?php echo ASSET_VERSION; ?>"></script>
+     <script src="<?php echo APP_URL; ?>/assets/js/app.js?v=<?php echo ASSET_VERSION . '-' . (int) @filemtime(__DIR__ . '/../../public/assets/js/app.js'); ?>"></script>
 </body>
 </html>

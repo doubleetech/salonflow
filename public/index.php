@@ -115,4 +115,18 @@ $router->get('worker/reports', ['WorkerPortalController', 'reports']);
 $router->get('worker/reports/export', ['WorkerPortalController', 'exportPdf']); 
 $router->get('worker/heartbeat', ['WorkerPortalController', 'heartbeat']);
 
-$router->dispatch();
+// Worker record confirmation queue (Accept / Appeal).
+$router->get('worker/records', ['WorkerPortalController', 'records']);
+$router->get('worker/confirm', ['WorkerPortalController', 'confirm']);
+$router->post('worker/confirm/accept', ['WorkerPortalController', 'acceptSubmit']);
+$router->post('worker/confirm/appeal', ['WorkerPortalController', 'appealSubmit']);
+
+// Admin: appealed records (see them, mark them resolved).
+$router->get('admin/appeals', ['AppealController', 'index']);
+
+// Cashier: first appeals at their branch (second appeals go to the Admin).
+$router->get('cashier/appeals', ['CashierController', 'appeals']);
+$router->post('cashier/appeals/resolve', ['CashierController', 'resolveAppealSubmit']);
+$router->post('admin/appeals/resolve', ['AppealController', 'resolve']);
+
+$router->dispatch();

@@ -15,8 +15,11 @@ function workerNavClass($matchRoutes, $current) {
         <a class="<?php echo workerNavClass('worker/dashboard', $currentRoute); ?>" href="<?php echo APP_URL; ?>/index.php?route=worker/dashboard">
             <i class="fas fa-chart-pie"></i> Dashboard
         </a>
+        <a class="<?php echo workerNavClass('worker/records', $currentRoute); ?>" href="<?php echo APP_URL; ?>/index.php?route=worker/records">
+            <i class="fas fa-list"></i> My Records
+        </a>
         <a class="<?php echo workerNavClass('worker/reports', $currentRoute); ?>" href="<?php echo APP_URL; ?>/index.php?route=worker/reports">
             <i class="fas fa-file-alt"></i> My Reports
         </a>
     </div>
-</nav>
+</nav>

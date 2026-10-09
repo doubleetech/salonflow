@@ -1687,10 +1687,24 @@ select[multiple] {
 
 /* ---------- Quick Sale page (cashier/sales/quick) ---------- */
 
-/* .content hides horizontal overflow, which would also stop the search box from
-   sticking while the page scrolls, so this page turns that off. */
+/* Quick-sale list (lives on the cashier dashboard). */
 .quick-sale {
-    max-width: 1000px;
+    margin-top: 36px;
+    /* "+ Record Sale" links jump here; keep the heading clear of the sticky top bar */
+    scroll-margin-top: calc(var(--topbar-h, 72px) + 8px);
+}
+
+.quick-sale__title {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--color-bottle);
+    margin: 0;
+}
+
+/* .content hides horizontal overflow, which would stop the search box from
+   sticking while the page scrolls, so the dashboard turns that off. */
+.content--sticky {
     overflow: visible;
 }
 

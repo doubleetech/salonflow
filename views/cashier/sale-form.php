@@ -58,7 +58,7 @@ foreach ($workers as $w) {
 
     <main class="content content--narrow">
         <h1><?php echo $sale ? 'Edit Sale' : 'Record Sale'; ?></h1>
-        <p class="field-hint">Copy this in exactly as it's written in the physical record book.</p>
+        <!-- <p class="field-hint">Copy this in exactly as it's written in the physical record book.</p> -->
 
         <?php if (!empty($error)): ?>
             <div class="alert alert--error"><?php echo htmlspecialchars($error); ?></div>
@@ -115,7 +115,7 @@ foreach ($workers as $w) {
             <input type="number" id="amount_made" name="amount_made" step="0.01" min="0"
                    value="<?php echo htmlspecialchars($field('amount_made', '')); ?>"
                    class="no-spinner">
-            <p class="field-hint">Leave at 0 if this sale is tips only.</p>
+            <p class="field-hint">Leave at 0 if this sale is cashback only.</p>
 
             <label for="payment_method">Payment Method</label>
             <select id="payment_method" name="payment_method" required>
@@ -140,14 +140,25 @@ foreach ($workers as $w) {
                        value="<?php echo htmlspecialchars($field('combo_pos', '0', 'amount_pos')); ?>">
             </div>
 
-           <label for="tip_amount">Tip (₦, optional)</label>
+           <label for="tip_amount">Cashback (₦, optional)</label>
             <input type="number" id="tip_amount" name="tip_amount" step="0.01" min="0"
                 value="<?php echo htmlspecialchars($field('tip_amount', '0')); ?>"
                 class="no-spinner">
-            <p class="field-hint">Tips go entirely to the Staff and are never part of the commission calculation.</p>
+            <p class="field-hint">Cashback goes entirely to the Staff and is never part of the commission calculation.</p>
 
             <label for="note">Note (optional)</label>
             <textarea id="note" name="note" rows="2"><?php echo htmlspecialchars($field('note', '')); ?></textarea>
+
+            <?php if ($sale): ?>
+                <?php if (($sale['confirmation_status'] ?? '') === 'appealed'): ?>
+                    <div class="alert alert--error">The staff member appealed this record (<?php echo htmlspecialchars(TransactionModel::appealReasonLabel($sale['appeal_reason'] ?? null)); ?>). Saving a correction closes the appeal and sends it back to them to confirm.</div>
+                <?php endif; ?>
+                <label for="revision_note">What changed? (the staff member will see this)</label>
+                <input type="text" id="revision_note" name="revision_note" maxlength="255"
+                       placeholder="e.g. Amount updated to ₦2,500"
+                       value="<?php echo htmlspecialchars($field('revision_note', '')); ?>">
+                <p class="field-hint">Required if you change anything. The record goes back to the staff member to Accept or Appeal again.</p>
+            <?php endif; ?>
 
             <button type="submit" class="btn btn--primary"><?php echo $sale ? 'Save Changes' : 'Save Sale'; ?></button>
         </form>
@@ -161,4 +172,4 @@ foreach ($workers as $w) {
         ?>
         <a class="link-back" href="<?php echo $backUrl; ?>"> Back to Records</a>
     </main>
-</div>
+</div>

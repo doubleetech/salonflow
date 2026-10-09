@@ -22,7 +22,7 @@
                     <option value="<?php echo $b['id']; ?>"><?php echo htmlspecialchars($b['name']); ?></option>
                 <?php endforeach; ?>
             </select>
-            <p class="field-hint">This locks in for the whole business day — you won't be able to switch until it's closed.</p>
+            <p class="field-hint">This locks in for the whole business day, you won't be able to switch until it's closed.</p>
 
             <button type="submit" class="btn btn--primary">Start My Day</button>
         </form>

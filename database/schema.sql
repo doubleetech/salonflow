@@ -119,12 +119,42 @@ CREATE TABLE IF NOT EXISTS transactions (
     note                             VARCHAR(255) NULL,
     business_date                   DATE NOT NULL,       -- the day this belongs to (for closure grouping)
     is_locked                       TINYINT(1) NOT NULL DEFAULT 0, -- becomes 1 once business day is closed
+    confirmation_status             ENUM('pending','accepted','appealed','expired') NOT NULL DEFAULT 'accepted', -- worker confirmation (separate from is_locked)
+    appeal_reason                   ENUM('wrong_amount','other') NULL,
+    appeal_count                    TINYINT UNSIGNED NOT NULL DEFAULT 0, -- how many times the worker appealed (max 2: appeal + one re-appeal)
+    confirmation_deadline           DATE NULL,           -- worker can respond until this business day closes
+    confirmation_started_at         DATETIME NULL,       -- when the current confirmation window opened (created or re-sent)
+    responded_at                    DATETIME NULL,
+    appeal_resolved_by              BIGINT UNSIGNED NULL,
+    appeal_resolved_at              DATETIME NULL,
+    revision_note                   VARCHAR(255) NULL,   -- latest cashier/admin note, shown on the worker's card
+    revision_by                     BIGINT UNSIGNED NULL,
+    revision_old_amount             DECIMAL(12,2) NULL,  -- amount before the latest edit
     created_at                      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at                      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_txn_branch  FOREIGN KEY (branch_id)  REFERENCES branches(id),
     CONSTRAINT fk_txn_worker  FOREIGN KEY (worker_id)  REFERENCES worker_profiles(id),
     CONSTRAINT fk_txn_cashier FOREIGN KEY (cashier_id) REFERENCES users(id),
-    INDEX idx_txn_branch_date (branch_id, business_date)
+    INDEX idx_txn_branch_date (branch_id, business_date),
+    INDEX idx_txn_worker_conf (worker_id, confirmation_status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ---------------------------------------------------------------
+-- appeal_resolutions  (permanent record of every closed appeal)
+-- ---------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS appeal_resolutions (
+    id               BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    transaction_id   BIGINT UNSIGNED NOT NULL,
+    resolution_type  ENUM('resolved','edited') NOT NULL,
+    appeal_reason    ENUM('wrong_amount','other') NULL,
+    appeal_number    TINYINT UNSIGNED NOT NULL DEFAULT 1,
+    note             VARCHAR(255) NOT NULL,
+    old_amount       DECIMAL(12,2) NULL,
+    new_amount       DECIMAL(12,2) NULL,
+    resolved_by      BIGINT UNSIGNED NULL,
+    created_at       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_resolutions_created (created_at),
+    INDEX idx_resolutions_txn (transaction_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ---------------------------------------------------------------

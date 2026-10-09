@@ -404,7 +404,11 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     
     // Initialize with current timestamp
-    var lastUpdate = Math.floor(Date.now() / 1000);
+    // Start from the SERVER's clock (not the browser's). A phone whose clock
+    // is a few minutes ahead would otherwise miss every change made in that gap.
+    var lastUpdate = (window.SALONFLOW && SALONFLOW.INITIAL_TIMESTAMP)
+        ? parseInt(SALONFLOW.INITIAL_TIMESTAMP, 10)
+        : Math.floor(Date.now() / 1000);
     var isUpdating = false;
     var appUrl = window.SALONFLOW ? SALONFLOW.APP_URL : '';
     
@@ -466,6 +470,12 @@ document.addEventListener('DOMContentLoaded', function () {
             // Update last update timestamp
             lastUpdate = data.timestamp;
             updateLastUpdatedText(lastUpdate);
+
+            // Server says this person has records to confirm: go straight to the queue.
+            if (data.redirect) {
+                window.location.href = data.redirect;
+                return;
+            }
             
             // Update page content
             updatePageContent(data);
@@ -500,6 +510,23 @@ document.addEventListener('DOMContentLoaded', function () {
     // Update admin dashboard
     function updateAdminDashboard(data) {
         if (!data.data || !data.data.todaySummary) return;
+
+        // Sidebar "Appeals" badge
+        var appealsBadge = document.getElementById('appealsBadge');
+        if (appealsBadge && data.data.openAppeals !== undefined) {
+            var openAppeals = parseInt(data.data.openAppeals, 10) || 0;
+            appealsBadge.textContent = openAppeals;
+            appealsBadge.style.display = openAppeals > 0 ? '' : 'none';
+        }
+
+        // Dashboard "appeals waiting" button: shown only while an appeal is open
+        var appealsAlert = document.getElementById('appealsAlert');
+        if (appealsAlert && data.data.openAppeals !== undefined) {
+            var openCount = parseInt(data.data.openAppeals, 10) || 0;
+            document.getElementById('appealsAlertCount').textContent = openCount;
+            document.getElementById('appealsAlertText').textContent = openCount === 1 ? 'appeal is' : 'appeals are';
+            appealsAlert.style.display = openCount > 0 ? 'flex' : 'none';
+        }
         
         var summary = data.data.todaySummary;
         
@@ -509,13 +536,13 @@ document.addEventListener('DOMContentLoaded', function () {
         var monthRevenue = document.getElementById('monthRevenue');
         
         if (todayRevenue && summary.total_revenue !== undefined) {
-            todayRevenue.textContent = '₦' + parseFloat(summary.total_revenue).toFixed(2);
+            todayRevenue.textContent = '' + sfMoney(parseFloat(summary.total_revenue));
         }
         if (weekRevenue && data.data.weekSummary) {
-            weekRevenue.textContent = '₦' + parseFloat(data.data.weekSummary.total_revenue).toFixed(2);
+            weekRevenue.textContent = '' + sfMoney(parseFloat(data.data.weekSummary.total_revenue));
         }
         if (monthRevenue && data.data.monthSummary) {
-            monthRevenue.textContent = '₦' + parseFloat(data.data.monthSummary.total_revenue).toFixed(2);
+            monthRevenue.textContent = '' + sfMoney(parseFloat(data.data.monthSummary.total_revenue));
         }
         
         // Update today's glance cards
@@ -528,54 +555,54 @@ document.addEventListener('DOMContentLoaded', function () {
         var salonEarnings = document.getElementById('salonEarnings');
         
         if (cashTotal && summary.cash_total !== undefined) {
-            cashTotal.textContent = '₦' + parseFloat(summary.cash_total).toFixed(2);
+            cashTotal.textContent = '' + sfMoney(parseFloat(summary.cash_total));
         }
         if (transferTotal && summary.transfer_total !== undefined) {
-            transferTotal.textContent = '₦' + parseFloat(summary.transfer_total).toFixed(2);
+            transferTotal.textContent = '' + sfMoney(parseFloat(summary.transfer_total));
         }
         if (posTotal && summary.pos_total !== undefined) {
-            posTotal.textContent = '₦' + parseFloat(summary.pos_total).toFixed(2);
+            posTotal.textContent = '' + sfMoney(parseFloat(summary.pos_total));
         }
         if (tipsTotal && summary.tips_total !== undefined) {
-            tipsTotal.textContent = '₦' + parseFloat(summary.tips_total).toFixed(2);
+            tipsTotal.textContent = '' + sfMoney(parseFloat(summary.tips_total));
         }
         if (commissionsTotal && summary.worker_commissions !== undefined) {
-            commissionsTotal.textContent = '₦' + parseFloat(summary.worker_commissions).toFixed(2);
+            commissionsTotal.textContent = '' + sfMoney(parseFloat(summary.worker_commissions));
         }
         // Prefer the pre-computed staff_payout field from ReportModel::summary();
         // fall back to summing the two parts by hand if it's missing (older
         // cached response, or ReportModel not yet updated).
         if (staffCommissionTipsToday) {
             if (summary.staff_payout !== undefined) {
-                staffCommissionTipsToday.textContent = '₦' + parseFloat(summary.staff_payout).toFixed(2);
+                staffCommissionTipsToday.textContent = '' + sfMoney(parseFloat(summary.staff_payout));
             } else if (summary.worker_commissions !== undefined && summary.tips_total !== undefined) {
                 var combinedToday = parseFloat(summary.worker_commissions) + parseFloat(summary.tips_total);
-                staffCommissionTipsToday.textContent = '₦' + combinedToday.toFixed(2);
+                staffCommissionTipsToday.textContent = '' + sfMoney(combinedToday);
             }
         }
         if (salonEarnings && summary.salon_earnings !== undefined) {
-            salonEarnings.textContent = '₦' + parseFloat(summary.salon_earnings).toFixed(2);
+            salonEarnings.textContent = '' + sfMoney(parseFloat(summary.salon_earnings));
         }
         
-        // Update Revenue + Tips cards
+        // Update Revenue + Cashback cards
         var todayRevenueTips = document.getElementById('todayRevenueTips');
         var weekRevenueTips = document.getElementById('weekRevenueTips');
         var monthRevenueTips = document.getElementById('monthRevenueTips');
 
         if (todayRevenueTips && data.data.todaySummary) {
             var todayTotal = parseFloat(data.data.todaySummary.total_revenue) + parseFloat(data.data.todaySummary.tips_total);
-            todayRevenueTips.textContent = '₦' + todayTotal.toFixed(2);
+            todayRevenueTips.textContent = '' + sfMoney(todayTotal);
         }
         if (weekRevenueTips && data.data.weekSummary) {
             var weekTotal = parseFloat(data.data.weekSummary.total_revenue) + parseFloat(data.data.weekSummary.tips_total);
-            weekRevenueTips.textContent = '₦' + weekTotal.toFixed(2);
+            weekRevenueTips.textContent = '' + sfMoney(weekTotal);
         }
         if (monthRevenueTips && data.data.monthSummary) {
             var monthTotal = parseFloat(data.data.monthSummary.total_revenue) + parseFloat(data.data.monthSummary.tips_total);
-            monthRevenueTips.textContent = '₦' + monthTotal.toFixed(2);
+            monthRevenueTips.textContent = '' + sfMoney(monthTotal);
         }
 
-        // Rebuild the Branch Revenue and Worker Performance tables — the
+        // Rebuild the Branch Revenue and Staff Performance tables — the
         // backend already sends branchBreakdown/workerPerformance in every
         // heartbeat response, but nothing used to consume it, so these
         // tables never actually refreshed.
@@ -588,7 +615,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     return '<tr>' +
                         '<td>' + escapeHtml(b.name) + '</td>' +
                         '<td>' + parseInt(b.record_count, 10) + '</td>' +
-                        '<td class="amount">₦' + parseFloat(b.revenue).toFixed(2) + '</td>' +
+                        '<td class="amount">' + sfMoney(parseFloat(b.revenue)) + '</td>' +
                         '</tr>';
                 }).join('');
             }
@@ -597,7 +624,7 @@ document.addEventListener('DOMContentLoaded', function () {
         var workerTableBody = document.getElementById('workerTableBody');
         if (workerTableBody && data.data.workerPerformance) {
             if (data.data.workerPerformance.length === 0) {
-                workerTableBody.innerHTML = '<tr><td colspan="7" class="empty-row">No workers yet.</td></tr>';
+                workerTableBody.innerHTML = '<tr><td colspan="7" class="empty-row">No staff yet.</td></tr>';
             } else {
                 workerTableBody.innerHTML = data.data.workerPerformance.map(function (w) {
                     var commission = parseFloat(w.commission);
@@ -606,10 +633,10 @@ document.addEventListener('DOMContentLoaded', function () {
                         '<td>' + escapeHtml(w.full_name) + '</td>' +
                         '<td>' + escapeHtml(w.branch_name) + '</td>' +
                         '<td>' + parseInt(w.record_count, 10) + '</td>' +
-                        '<td class="amount">₦' + parseFloat(w.revenue).toFixed(2) + '</td>' +
-                        '<td class="amount">₦' + commission.toFixed(2) + '</td>' +
-                        '<td class="amount">₦' + tips.toFixed(2) + '</td>' +
-                        '<td class="amount">₦' + (commission + tips).toFixed(2) + '</td>' +
+                        '<td class="amount">' + sfMoney(parseFloat(w.revenue)) + '</td>' +
+                        '<td class="amount">' + sfMoney(commission) + '</td>' +
+                        '<td class="amount">' + sfMoney(tips) + '</td>' +
+                        '<td class="amount">' + sfMoney((commission + tips)) + '</td>' +
                         '</tr>';
                 }).join('');
             }
@@ -619,41 +646,25 @@ document.addEventListener('DOMContentLoaded', function () {
     // Update cashier dashboard
     function updateCashierDashboard(data) {
         if (!data.data || !data.data.summary) return;
-        
-        var summary = data.data.summary;
-        
-        var todayRecords = document.getElementById('todayRecords');
-        var todayRevenue = document.getElementById('todayRevenue');
-        var cashTotal = document.getElementById('cashTotal');
-        var transferTotal = document.getElementById('transferTotal');
-        var posTotal = document.getElementById('posTotal');
-        var staffCommissionTips = document.getElementById('staffCommissionTips');
-        
-        if (todayRecords && summary.record_count !== undefined) {
-            todayRecords.textContent = summary.record_count || 0;
+
+        // Stat cards (including Total Revenue + Cashback and Tips), formatted the same
+        // way the page was first rendered. Helpers live near the bottom of this file.
+        sfApplyCashierSummary(data.data.summary);
+
+        // Sidebar "Appeals" badge (first appeals this cashier can handle)
+        var cashierAppealsBadge = document.getElementById('cashierAppealsBadge');
+        if (cashierAppealsBadge && data.data.openAppeals !== undefined) {
+            var openForCashier = parseInt(data.data.openAppeals, 10) || 0;
+            cashierAppealsBadge.textContent = openForCashier;
+            cashierAppealsBadge.style.display = openForCashier > 0 ? '' : 'none';
         }
-        if (todayRevenue && summary.total_revenue !== undefined) {
-            todayRevenue.textContent = '₦' + parseFloat(summary.total_revenue).toFixed(2);
-        }
-        if (cashTotal && summary.cash_total !== undefined) {
-            cashTotal.textContent = '₦' + parseFloat(summary.cash_total).toFixed(2);
-        }
-        if (transferTotal && summary.transfer_total !== undefined) {
-            transferTotal.textContent = '₦' + parseFloat(summary.transfer_total).toFixed(2);
-        }
-        if (posTotal && summary.pos_total !== undefined) {
-            posTotal.textContent = '₦' + parseFloat(summary.pos_total).toFixed(2);
-        }
-        // Combined Staff Commissions + Tips — comes as two separate fields
-        // from TransactionModel::summaryForBranchToday(), summed here.
-        if (staffCommissionTips &&
-            summary.worker_commissions_total !== undefined &&
-            summary.tips_total !== undefined) {
-            var combined = parseFloat(summary.worker_commissions_total) + parseFloat(summary.tips_total);
-            staffCommissionTips.textContent = '₦' + combined.toFixed(2);
+
+        // Staff cards: each worker's sale count and revenue for today
+        if (data.data.workers) {
+            sfApplyStaffStats(data.data.workers);
         }
     }
-    
+
     // Update staff dashboard
     function updateStaffDashboard(data) {
         if (!data.data || !data.data.todaySummary) return;
@@ -682,22 +693,22 @@ document.addEventListener('DOMContentLoaded', function () {
                 salesEl.textContent = summary.record_count || 0;
             }
             if (revenueEl && summary.revenue !== undefined) {
-                revenueEl.textContent = '₦' + parseFloat(summary.revenue).toFixed(2);
+                revenueEl.textContent = '' + sfMoney(parseFloat(summary.revenue));
             }
             if (commissionEl && summary.commission !== undefined) {
-                commissionEl.textContent = '₦' + parseFloat(summary.commission).toFixed(2);
+                commissionEl.textContent = '' + sfMoney(parseFloat(summary.commission));
             }
             if (tipsEl && summary.tips !== undefined) {
-                tipsEl.textContent = '₦' + parseFloat(summary.tips).toFixed(2);
+                tipsEl.textContent = '' + sfMoney(parseFloat(summary.tips));
             }
             // Combined card — prefer the pre-computed staff_payout field,
             // fall back to summing commission + tips if it's absent.
             if (commissionTipsEl) {
                 if (summary.staff_payout !== undefined) {
-                    commissionTipsEl.textContent = '₦' + parseFloat(summary.staff_payout).toFixed(2);
+                    commissionTipsEl.textContent = '' + sfMoney(parseFloat(summary.staff_payout));
                 } else if (summary.commission !== undefined && summary.tips !== undefined) {
                     var combinedOwn = parseFloat(summary.commission) + parseFloat(summary.tips);
-                    commissionTipsEl.textContent = '₦' + combinedOwn.toFixed(2);
+                    commissionTipsEl.textContent = '' + sfMoney(combinedOwn);
                 }
             }
         });
@@ -808,7 +819,62 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 // ---------------------------------------------------------------------------
-// Quick Sale page (route: cashier/sales/quick)
+// Cashier dashboard helpers - shared by the heartbeat (live updates) and the
+// quick-sale popup, so both write numbers into the page the same way.
+// ---------------------------------------------------------------------------
+function sfMoney(value) {
+    return '\u20A6' + (parseFloat(value) || 0).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+}
+
+function sfSetText(id, text) {
+    var el = document.getElementById(id);
+    if (el) { el.textContent = text; }
+}
+
+// summary = the object from TransactionModel::summaryForBranchToday()
+function sfApplyCashierSummary(summary) {
+    if (!summary) { return; }
+
+    var revenue = parseFloat(summary.total_revenue) || 0;
+    var tips = parseFloat(summary.tips_total) || 0;
+    var commissions = parseFloat(summary.worker_commissions_total) || 0;
+
+    sfSetText('todayRecords', String(parseInt(summary.record_count, 10) || 0));
+    sfSetText('todayRevenue', sfMoney(revenue));
+    sfSetText('todayRevenueTips', sfMoney(revenue + tips));
+    sfSetText('cashTotal', sfMoney(summary.cash_total));
+    sfSetText('transferTotal', sfMoney(summary.transfer_total));
+    sfSetText('posTotal', sfMoney(summary.pos_total));
+    sfSetText('tipsTotal', sfMoney(tips));
+    sfSetText('staffCommissionTips', sfMoney(commissions + tips));
+}
+
+// Updates one staff card. flash=true gives it the brief green highlight.
+function sfSetStaffCard(worker, flash) {
+    var card = document.querySelector('#staffList .staff-card[data-worker-id="' + worker.id + '"]');
+    if (!card) { return; }
+
+    var count = parseInt(worker.sale_count, 10) || 0;
+    card.querySelector('.js-count').textContent = count;
+    card.querySelector('.js-count-label').textContent = count === 1 ? 'sale' : 'sales';
+    card.querySelector('.js-revenue').textContent = sfMoney(worker.revenue);
+
+    if (flash) {
+        card.classList.add('is-updated');
+        setTimeout(function () { card.classList.remove('is-updated'); }, 1600);
+    }
+}
+
+function sfApplyStaffStats(workers) {
+    (workers || []).forEach(function (w) { sfSetStaffCard(w, false); });
+}
+
+
+// ---------------------------------------------------------------------------
+// Quick Sale list (lives on the cashier dashboard, #quickSale)
 //
 // What this block does, in order:
 //   1. Search box  -> hides staff cards that don't match what was typed.
@@ -1024,16 +1090,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // --- 3. Save in the background -------------------------------------------
     function updateCard(worker) {
-        var card = list.querySelector('.staff-card[data-worker-id="' + worker.id + '"]');
-        if (!card) { return; }
-
-        card.querySelector('.js-count').textContent = worker.sale_count;
-        card.querySelector('.js-count-label').textContent = Number(worker.sale_count) === 1 ? 'sale' : 'sales';
-        card.querySelector('.js-revenue').textContent = formatMoney(worker.revenue);
-
-        // Brief green flash so the cashier SEES which card changed.
-        card.classList.add('is-updated');
-        setTimeout(function () { card.classList.remove('is-updated'); }, 1600);
+        sfSetStaffCard(worker, true); // brief green flash so the cashier SEES which card changed
     }
 
     // Builds an Error that carries a message safe to show the cashier.
@@ -1055,11 +1112,11 @@ document.addEventListener('DOMContentLoaded', function () {
         var amountValue = parseFloat(amount.value) || 0;
         var tipValue = parseFloat(tip.value) || 0;
         if (amountValue < 0 || tipValue < 0) {
-            showError('Amount and tip cannot be negative.');
+            showError('Amount and cashback cannot be negative.');
             return;
         }
         if (amountValue <= 0 && tipValue <= 0) {
-            showError('Enter an amount, a tip, or both.');
+            showError('Enter an amount, a cashback, or both.');
             amount.focus();
             return;
         }
@@ -1100,12 +1157,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
             setSaving(false);
             if (data.worker) { updateCard(data.worker); }
+            if (data.summary) { sfApplyCashierSummary(data.summary); } // stat cards at the top
             closeSheet(false);
 
             // Fresh start for the next customer: clear the search, show everyone.
             if (search) { search.value = ''; applyFilter(); }
 
-            var savedText = amountValue > 0 ? formatMoney(amountValue) : formatMoney(tipValue) + ' tip';
+            var savedText = amountValue > 0 ? formatMoney(amountValue) : formatMoney(tipValue) + ' cashback';
             showToast('Saved \u2713 ' + savedText + ' for ' + savedName);
         })
         .catch(function (err) {
@@ -1127,3 +1185,57 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 });
+
+
+// ---------------------------------------------------------------------------
+// sfToast(message): small, non-blocking confirmation message.
+// A message saved in sessionStorage under "sfToast" is shown on the next page
+// (used when the staff queue empties and the page jumps to the dashboard).
+// ---------------------------------------------------------------------------
+(function () {
+    var timer = null;
+
+    function ensureToast() {
+        var el = document.getElementById('sfToast');
+        if (el) { return el; }
+        var style = document.createElement('style');
+        style.textContent =
+            '#sfToast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,20px);' +
+            'background:#101828;color:#fff;padding:12px 20px;border-radius:999px;font-size:.95rem;' +
+            'font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.25);opacity:0;pointer-events:none;' +
+            'transition:opacity .2s ease,transform .2s ease;z-index:9999;max-width:90vw;text-align:center}' +
+            '#sfToast.is-visible{opacity:1;transform:translate(-50%,0)}';
+        document.head.appendChild(style);
+        el = document.createElement('div');
+        el.id = 'sfToast';
+        el.setAttribute('role', 'status');
+        el.setAttribute('aria-live', 'polite');
+        document.body.appendChild(el);
+        return el;
+    }
+
+    window.sfToast = function (message) {
+        var el = ensureToast();
+        clearTimeout(timer);
+        el.textContent = message;
+        void el.offsetWidth;
+        el.classList.add('is-visible');
+        timer = setTimeout(function () { el.classList.remove('is-visible'); }, 2200);
+    };
+
+    function showPending() {
+        try {
+            var msg = window.sessionStorage.getItem('sfToast');
+            if (msg) {
+                window.sessionStorage.removeItem('sfToast');
+                window.sfToast(msg);
+            }
+        } catch (e) { /* storage unavailable: no toast, nothing breaks */ }
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', showPending);
+    } else {
+        showPending();
+    }
+})();

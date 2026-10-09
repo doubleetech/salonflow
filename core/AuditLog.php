@@ -12,7 +12,7 @@ class AuditLog
         $db = Database::connect();
 
         $userId    = Auth::check() ? Auth::id() : null;
-        $userLabel = Auth::check() ? (Session::get('user_name') . ' (' . Auth::role() . ')') : 'system';
+        $userLabel = Auth::check() ? (Session::get('user_name') . ' (' . (Auth::role() === 'worker' ? 'staff' : Auth::role()) . ')') : 'system';
         $ip        = $_SERVER['REMOTE_ADDR'] ?? null;
 
         $stmt = $db->prepare(

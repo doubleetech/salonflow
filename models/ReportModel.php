@@ -148,7 +148,7 @@ class ReportModel
                 COALESCE(SUM(t.worker_commission), 0) + COALESCE(SUM(tip.amount), 0) AS staff_payout
              FROM transactions t
              LEFT JOIN transaction_tips tip ON tip.transaction_id = t.id
-             WHERE t.worker_id = :worker_id AND t.business_date BETWEEN :start AND :end"
+             WHERE t.worker_id = :worker_id AND t.confirmation_status = 'accepted' AND t.business_date BETWEEN :start AND :end"
         );
         $stmt->execute(['worker_id' => $workerId, 'start' => $startDate, 'end' => $endDate]);
         return $stmt->fetch();

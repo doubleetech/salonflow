@@ -115,13 +115,13 @@ class AuthController
         $user = Auth::attemptWorkerLogin($username, $password);
 
         if (!$user) {
-            AuditLog::record('login_failed', "Failed worker login attempt for username: {$username}");
+            AuditLog::record('login_failed', "Failed staff login attempt for username: {$username}");
             Session::flash('login_error', 'Incorrect username or password.');
             header('Location: ' . APP_URL . '/index.php?route=worker-login');
             exit;
         }
 
-        AuditLog::record('login', 'Worker logged in: ' . $user['full_name']);
+        AuditLog::record('login', 'Staff logged in: ' . $user['full_name']);
         $this->redirectToDashboard();
     }
 
@@ -363,4 +363,4 @@ class AuthController
         }
         exit;
     }
-}
+}

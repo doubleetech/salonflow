@@ -16,6 +16,7 @@ class WorkerPortalController
         Auth::requireWorker();
         $this->redirectIfMustChangePassword();
         $worker = $this->currentWorkerProfile();
+        $this->requireQueueCleared((int) $worker['id']);
 
         $pageTitle = 'Staff Dashboard';
 
@@ -37,6 +38,7 @@ class WorkerPortalController
         Auth::requireWorker();
         $this->redirectIfMustChangePassword();
         $worker = $this->currentWorkerProfile();
+        $this->requireQueueCleared((int) $worker['id']);
 
         $pageTitle = 'My Reports';
         
@@ -79,6 +81,7 @@ class WorkerPortalController
         Auth::requireWorker();
         $this->redirectIfMustChangePassword();
         $worker = $this->currentWorkerProfile();
+        $this->requireQueueCleared((int) $worker['id']);
 
         // Convert dates from DD-MM-YYYY to Y-m-d before passing to DateRange
         if (isset($_GET['date']) && preg_match('/^\d{2}-\d{2}-\d{4}$/', $_GET['date'])) {
@@ -111,7 +114,7 @@ class WorkerPortalController
 
         AuditLog::record('export_pdf', "Exported staff report for {$workerName} ({$range['label']}, {$range['start']} to {$range['end']})");
 
-        $filename = 'salonflow-worker-report-' . $range['start'] . '-to-' . $range['end'] . '.pdf';
+        $filename = 'salonflow-staff-report-' . $range['start'] . '-to-' . $range['end'] . '.pdf';
         $pdf->streamDownload($filename);
     }
 
@@ -131,6 +134,7 @@ class WorkerPortalController
             FROM transactions t
             LEFT JOIN transaction_tips tip ON tip.transaction_id = t.id
             WHERE t.worker_id = :worker_id 
+            AND t.confirmation_status = 'accepted'
             AND t.business_date BETWEEN :start AND :end
             GROUP BY DATE(t.business_date)
             ORDER BY t.business_date ASC"
@@ -212,8 +216,8 @@ class WorkerPortalController
             ['Total Sales', (string) $summary['record_count']],
             ['Revenue', $this->money($summary['revenue'])],
             ['Commission Earned', $this->money($summary['commission'])],
-            ['Tips Received', $this->money($summary['tips'])],
-            ['Commission + Tips', $this->money($summary['staff_payout'])],
+            ['Cashback Received', $this->money($summary['tips'])],
+            ['Commission + Cashback', $this->money($summary['staff_payout'])],
         ];
 
         foreach ($summaryData as $index => $row) {
@@ -238,7 +242,7 @@ class WorkerPortalController
             $addText(120, $y, "Sales", 9, true);
             $addText(180, $y, "Revenue", 9, true);
             $addText(280, $y, "Commission", 9, true);
-            $addText(380, $y, "Tips", 9, true);
+            $addText(380, $y, "Cashback", 9, true);
             $addText(460, $y, "Total Earned", 9, true);
 
             $y += 6;
@@ -272,7 +276,7 @@ class WorkerPortalController
                     $addText(120, $y, "Sales", 9, true);
                     $addText(180, $y, "Revenue", 9, true);
                     $addText(280, $y, "Commission", 9, true);
-                    $addText(380, $y, "Tips", 9, true);
+                    $addText(380, $y, "Cashback", 9, true);
                     $addText(460, $y, "Total Earned", 9, true);
                     $y += 6;
                     $addLine($leftMargin, $y, $rightMargin);
@@ -298,7 +302,7 @@ class WorkerPortalController
         $stats = [
             "  -  Total Days Worked: " . count($dailyBreakdown),
             "  -  Average Daily Revenue: " . (count($dailyBreakdown) > 0 ? $this->money($summary['revenue'] / count($dailyBreakdown)) : $this->money(0)),
-            "  -  Total Commission + Tips: " . $this->money($summary['commission'] + $summary['tips']),
+            "  -  Total Commission + Cashback: " . $this->money($summary['commission'] + $summary['tips']),
             "  -  Commission Rate: " . ($summary['revenue'] > 0 ? number_format(($summary['commission'] / $summary['revenue']) * 100, 2) : 0) . "%",
         ];
         $summaryBlockHeight = 16 + (count($stats) * 16);
@@ -394,6 +398,18 @@ class WorkerPortalController
     {
         Auth::requireWorker();
         $worker = $this->currentWorkerProfile();
+
+        // A new record needs confirming: tell the page to jump to the queue.
+        TransactionModel::expireOverdueForWorker((int) $worker['id']);
+        if (TransactionModel::queueCountForWorker((int) $worker['id']) > 0) {
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => true,
+                'timestamp' => time(),
+                'redirect' => APP_URL . '/index.php?route=worker/confirm',
+            ]);
+            exit;
+        }
         
         // Get the last update timestamp from the request
         $lastUpdate = isset($_GET['last_update']) ? (int)$_GET['last_update'] : 0;
@@ -433,6 +449,179 @@ class WorkerPortalController
         exit;
     }
 
+    // ------------------------------------------------------------------
+    // Record confirmation queue (Accept / Appeal)
+    // ------------------------------------------------------------------
+
+    /** The queue page: one record at a time. Redirects to the dashboard once it is clear. */
+    public function confirm(): void
+    {
+        Auth::requireWorker();
+        $this->redirectIfMustChangePassword();
+        $worker = $this->currentWorkerProfile();
+
+        TransactionModel::expireOverdueForWorker((int) $worker['id']);
+        $first = TransactionModel::nextInQueueForWorker((int) $worker['id']);
+
+        if ($first === null) {
+            header('Location: ' . APP_URL . '/index.php?route=worker/dashboard');
+            exit;
+        }
+
+        $pageTitle = 'Confirm Records';
+        $remaining = TransactionModel::queueCountForWorker((int) $worker['id']);
+        $card = $this->cardPayload($first, $remaining);
+
+        require __DIR__ . '/../views/layouts/header.php';
+        require __DIR__ . '/../views/worker/confirm.php';
+        require __DIR__ . '/../views/layouts/footer.php';
+    }
+
+    /** ACCEPT: no confirmation step. Answers with the next record so the page can swap it in. */
+    public function acceptSubmit(): void
+    {
+        Auth::requireWorker();
+        Csrf::verifyOrFail($_POST['csrf_token'] ?? '');
+        $worker = $this->currentWorkerProfile();
+        $workerId = (int) $worker['id'];
+        $id = (int) ($_POST['record_id'] ?? 0);
+
+        TransactionModel::expireOverdueForWorker($workerId);
+
+        $record = TransactionModel::find($id);
+        if ($record && (int) $record['worker_id'] === $workerId
+            && TransactionModel::acceptForWorker($id, $workerId)) {
+            AuditLog::record('worker_accept_record', "Accepted Record #{$id} (₦" . number_format((float) $record['amount_made'], 2) . ")");
+        }
+
+        $this->queueReply();
+    }
+
+    /** APPEAL: one tap on a reason. Only 'pending' records can be appealed. */
+    public function appealSubmit(): void
+    {
+        Auth::requireWorker();
+        Csrf::verifyOrFail($_POST['csrf_token'] ?? '');
+        $worker = $this->currentWorkerProfile();
+        $workerId = (int) $worker['id'];
+        $id = (int) ($_POST['record_id'] ?? 0);
+        $reason = (string) ($_POST['reason'] ?? '');
+
+        TransactionModel::expireOverdueForWorker($workerId);
+
+        $error = null;
+        $record = TransactionModel::find($id);
+        if ($record && (int) $record['worker_id'] === $workerId
+            && TransactionModel::appealForWorker($id, $workerId, $reason)) {
+            AuditLog::record(
+                'worker_appeal_record',
+                "Appealed Record #{$id} (₦" . number_format((float) $record['amount_made'], 2) . "). Reason: " . TransactionModel::appealReasonLabel($reason)
+            );
+        } else {
+            $error = 'This record can no longer be appealed.';
+        }
+
+        $this->queueReply($error);
+    }
+
+    /** Sends the next record in the queue (or "done") as JSON. Non-ajax requests just go back to the queue page. */
+    private function queueReply(?string $error = null): void
+    {
+        $worker = $this->currentWorkerProfile();
+        $workerId = (int) $worker['id'];
+
+        $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH'])
+            && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+        if (!$isAjax) {
+            header('Location: ' . APP_URL . '/index.php?route=worker/confirm');
+            exit;
+        }
+
+        $next = TransactionModel::nextInQueueForWorker($workerId);
+        header('Content-Type: application/json');
+        echo json_encode([
+            'success' => $error === null,
+            'error' => $error,
+            'done' => $next === null,
+            'redirect' => APP_URL . '/index.php?route=worker/dashboard',
+            'card' => $next === null ? null : $this->cardPayload($next, TransactionModel::queueCountForWorker($workerId)),
+        ]);
+        exit;
+    }
+
+    /** The bits of a queue record the card needs, already formatted for display. */
+    private function cardPayload(array $row, int $remaining): array
+    {
+        $reviser = '';
+        if (!empty($row['revised_by_name']) || !empty($row['revised_by_role'])) {
+            $reviser = ($row['revised_by_role'] ?? '') === 'admin' ? 'Admin' : (string) $row['revised_by_name'];
+        }
+        $hasOld = $row['revision_old_amount'] !== null && (float) $row['revision_old_amount'] !== (float) $row['amount_made'];
+
+        return [
+            'id' => (int) $row['id'],
+            'amount' => '₦' . number_format((float) $row['amount_made'], 2),
+            'tip' => (float) $row['tip_amount'] > 0 ? '₦' . number_format((float) $row['tip_amount'], 2) : '',
+            'note' => (string) ($row['note'] ?? ''),
+            'cashier' => (string) ($row['cashier_name'] ?? 'Cashier'),
+            'time' => date('M j, g:i A', strtotime($row['created_at'])),
+            'expired' => $row['confirmation_status'] === 'expired',
+            'can_appeal' => TransactionModel::canAppeal($row),
+            'appealed_before' => (int) $row['appeal_count'] > 0,
+            'revision_note' => (string) ($row['revision_note'] ?? ''),
+            'revised_by' => $reviser,
+            'old_amount' => $hasOld ? '₦' . number_format((float) $row['revision_old_amount'], 2) : '',
+            'remaining' => $remaining,
+        ];
+    }
+
+    /** My Records: accepted records plus ones still under review (appealed). */
+    public function records(): void
+    {
+        Auth::requireWorker();
+        $this->redirectIfMustChangePassword();
+        $worker = $this->currentWorkerProfile();
+        $this->requireQueueCleared((int) $worker['id']);
+
+        $start = $_GET['start'] ?? date('Y-m-01');
+        $end = $_GET['end'] ?? date('Y-m-d');
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $start)) { $start = date('Y-m-01'); }
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $end)) { $end = date('Y-m-d'); }
+
+        $records = TransactionModel::historyForWorker((int) $worker['id'], $start, $end);
+
+        // Totals count accepted records only; "under review" ones are shown but not added up.
+        $acceptedCount = 0; $acceptedAmount = 0.0; $acceptedShare = 0.0; $acceptedTips = 0.0; $reviewCount = 0;
+        foreach ($records as $r) {
+            if ($r['confirmation_status'] === 'accepted') {
+                $acceptedCount++;
+                $acceptedAmount += (float) $r['amount_made'];
+                $acceptedShare += (float) $r['worker_commission'];
+                $acceptedTips += (float) $r['tip_amount'];
+            } else {
+                $reviewCount++;
+            }
+        }
+
+        $pageTitle = 'My Records';
+        require __DIR__ . '/../views/layouts/header.php';
+        require __DIR__ . '/../views/worker/records.php';
+        require __DIR__ . '/../views/layouts/footer.php';
+    }
+
+    /**
+     * Gate for the normal dashboard/reports: anything still pending or
+     * expired sends the worker to the queue. There is deliberately no way around this.
+     */
+    private function requireQueueCleared(int $workerId): void
+    {
+        TransactionModel::expireOverdueForWorker($workerId);
+        if (TransactionModel::queueCountForWorker($workerId) > 0) {
+            header('Location: ' . APP_URL . '/index.php?route=worker/confirm');
+            exit;
+        }
+    }
+
     /**
      * Formats a number as "NGN 1,234.56"
      */
@@ -440,4 +629,4 @@ class WorkerPortalController
     {
         return 'NGN ' . number_format((float) $value, 2);
     }
-}
+}

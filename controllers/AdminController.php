@@ -53,6 +53,7 @@ class AdminController
         $monthSummary = ReportModel::summary(null, $monthStart, $today);
         $branchBreakdown = ReportModel::branchBreakdown($today, $today);
         $workerPerformance = ReportModel::workerPerformance($today, $today);
+        $openAppeals = TransactionModel::openAppealCount();
         
         // Get current timestamp
         $currentTime = time();
@@ -68,8 +69,9 @@ class AdminController
                 'monthSummary' => $monthSummary,
                 'branchBreakdown' => $branchBreakdown,
                 'workerPerformance' => $workerPerformance,
+                'openAppeals' => $openAppeals,
             ]
         ]);
         exit;
     }
-}
+}
